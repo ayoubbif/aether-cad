@@ -1,53 +1,68 @@
-import * as THREE from 'three';
 import { Scene } from './core/scene';
 import { Renderer } from './core/renderer';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Camera } from './core/camera';
+import { Controls } from './core/controls';
 
 export class AetherEngine {
   constructor() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initialize());
+    } else {
+      this.initialize();
+    }
+  }
+
+  initialize() {
     this.init();
-    this.setupScene();
-    this.setupRenderer();
-    this.setupCamera();
-    this.setupControls();
+    this.setupCore();
+    this.setupEventListeners();
     this.animate();
   }
 
-  init(){
+  init() {
     this.viewport = document.querySelector('.viewport');
-    this.canvas = document.getElementById('three-canvas');
+    this.canvas = document.querySelector('#three-canvas');
+
+    if (!this.viewport || !this.canvas) {
+      throw new Error('Required DOM elements not found');
+    }
   }
 
-  setupScene() {
+  setupCore() {
+    // Initialize core components
     this.sceneManager = new Scene(this.viewport);
     this.scene = this.sceneManager.getScene();
-  }
 
-  setupRenderer() {
     this.renderer = new Renderer(this.canvas, this.viewport);
+
+    this.cameraManager = new Camera(this.viewport);
+    this.camera = this.cameraManager.getCamera();
+
+    this.controlsManager = new Controls(this.camera, this.canvas);
+    this.controls = this.controlsManager.getControls();
   }
 
-  setupCamera() {
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      this.viewport.clientWidth / this.viewport.clientHeight,
-      0.1,
-      1000
-    );
-    this.camera.position.set(0, 10, 10);
+  setupEventListeners() {
+    window.addEventListener('resize', () => this.handleResize());
   }
 
-  setupControls() {
-    this.controls = new OrbitControls(this.camera, this.canvas);
-    this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.05;
+  handleResize() {
+    if (this.renderer) {
+      this.renderer.resize();
+    }
+    if (this.cameraManager) {
+      this.cameraManager.resize();
+    }
   }
 
   animate() {
     requestAnimationFrame(() => this.animate());
-    this.controls.update();
+    this.controlsManager.update();
     this.renderer.render(this.scene, this.camera);
   }
 }
 
-const app = new AetherEngine();
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new AetherEngine();
+});
