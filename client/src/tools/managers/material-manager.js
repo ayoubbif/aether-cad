@@ -6,11 +6,11 @@ export class MaterialManager {
     this.materials = {
       line: new THREE.LineBasicMaterial({
         color: TOOL_CONFIG.COLORS.LINE,
-        linewidth: 10
+        linewidth: 1
       }),
       previewLine: new THREE.LineBasicMaterial({
         color: TOOL_CONFIG.COLORS.LINE,
-        linewidth: 10
+        linewidth: 1
       }),
       point: new THREE.MeshBasicMaterial({
         color: TOOL_CONFIG.COLORS.POINT
