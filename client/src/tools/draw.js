@@ -113,12 +113,45 @@ export class DrawTool extends BaseTool {
     this.currentZIndex += 0.001;
     mesh.position.setY(TOOL_CONFIG.Y_OFFSET + this.currentZIndex);
 
+    // Store references to the marker points
+    mesh.userData.markerPoints = [...this.pointManager.currentMarkers];
+
     this.scene.add(mesh);
     this.state.polygons.push(mesh);
 
     this.pointManager.moveToCompleted();
     this.emitCompletionEvent();
     this.resetCurrentDrawing();
+  }
+
+  // Update resetAllDrawings to properly clean up points
+  resetAllDrawings() {
+    this.cancelDrawing();
+    this.pointManager.removeAllMarkers();
+
+    this.state.polygons.forEach(polygon => {
+      this.removePolygonAndPoints(polygon);
+    });
+    this.state.polygons = [];
+    this.currentZIndex = 0;
+  }
+
+  removePolygonAndPoints(polygon) {
+    // Remove associated points
+    if (polygon.userData.markerPoints) {
+      polygon.userData.markerPoints.forEach(point => {
+        this.scene.remove(point);
+        point.geometry.dispose();
+        const index = this.pointManager.completedMarkers.indexOf(point);
+        if (index > -1) {
+          this.pointManager.completedMarkers.splice(index, 1);
+        }
+      });
+    }
+
+    // Remove polygon
+    this.scene.remove(polygon);
+    polygon.geometry.dispose();
   }
 
   emitCompletionEvent() {
