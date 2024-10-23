@@ -15,7 +15,8 @@ export class LineManager {
     geometry.setDrawRange(0, 2);
 
     this.currentLine = new THREE.Line(geometry, this.materials.get('line'));
-    this.currentLine.position.y = TOOL_CONFIG.Y_OFFSET + 0.002;
+    this.currentLine.position.y = TOOL_CONFIG.Y_OFFSET;
+    this.currentLine.frustumCulled = false;
     this.scene.add(this.currentLine);
   }
 
