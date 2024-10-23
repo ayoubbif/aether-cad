@@ -6,17 +6,16 @@
 }
 
 :root {
-  /* Modern Dark Theme Colors */
-  --primary-color: #11b070;
-  --primary-hover: #0e4fe6;
-  --accent-color: #10b981;
-  --bg-dark: #0f172a;
-  --bg-darker: #020617;
-  --bg-lighter: #1e293b;
-  --bg-transparent: rgba(15, 23, 42, 0.95);
-  --border-color: #334155;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
+  --primary-color: #bc7a0f;
+  --primary-hover: #0cc148;
+  --accent-color: #0a1b30;
+  --bg-darker: #030c25;
+  --bg-lighter: #0c2151;
+  --bg-transparent: rgba(9, 35, 48, 0.472);
+  --border-color: #12df6e;
+  --text-primary: #eceff1;
+  --text-secondary: #ffcc80;
+
 
   /* Layout Variables */
   --panel-width-desktop: 320px;
@@ -44,7 +43,7 @@ body {
 /* Toolbar Styles */
 .toolbar {
   background-color: var(--bg-darker);
-  padding: 0 16px;
+  padding: 0 0px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -97,20 +96,6 @@ body {
 
 .tool-button.active {
   background-color: var(--primary-color);
-}
-
-.tool-button:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--bg-darker);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 1000;
 }
 
 /* Layout Styles */
@@ -239,7 +224,7 @@ body {
 }
 
 .layer-item label {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
