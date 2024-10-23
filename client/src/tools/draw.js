@@ -2,29 +2,39 @@ import * as THREE from 'three';
 import { BaseTool } from './base';
 import { MaterialManager } from './managers/material-manager';
 import { PreviewManager } from './managers/preview-manager';
+import { PointManager } from './managers/point-manager';
+import { LineManager } from './managers/line-manager';
+import { GeometryFactory } from './factories/geometry-factory';
 import { TOOL_CONFIG } from '../constants/tool-config';
 
 export class DrawTool extends BaseTool {
   constructor(scene, camera, renderer) {
     super(scene, camera, renderer);
 
+    this.initializeComponents(scene);
+    this.initializeState();
+    this.setupEventListeners({
+      mousemove: this.onMouseMove.bind(this),
+      click: this.onClick.bind(this),
+      dblclick: this.onDoubleClick.bind(this),
+      keydown: this.onKeyDown.bind(this)
+    });
+  }
+
+  initializeComponents(scene) {
     this.drawingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     this.materials = new MaterialManager();
     this.preview = new PreviewManager(scene, this.materials);
+    this.pointManager = new PointManager(scene, this.materials);
+    this.lineManager = new LineManager(scene, this.materials);
+  }
 
+  initializeState() {
+    this.currentZIndex = 0;
     this.state = {
       currentPoints: [],
-      currentLine: null,
-      polygons: [],
-      pointMarkers: []
+      polygons: []
     };
-
-    this.setupEventListeners({
-      mousemove: this.onMouseMove,
-      click: this.onClick,
-      dblclick: this.onDoubleClick,
-      keydown: this.onKeyDown
-    });
   }
 
   getCursorStyle() {
@@ -34,13 +44,11 @@ export class DrawTool extends BaseTool {
   getIntersectionPoint(event) {
     const intersects = super.getIntersectionPoint(event);
 
-    // Check for point snapping
     const pointIntersect = intersects.find(i => i.object.userData.isVertex);
     if (pointIntersect) {
       return pointIntersect.object.position.clone();
     }
 
-    // Intersect with drawing plane
     const intersectPoint = new THREE.Vector3();
     this.raycaster.ray.intersectPlane(this.drawingPlane, intersectPoint);
     return intersectPoint.setY(0);
@@ -53,10 +61,7 @@ export class DrawTool extends BaseTool {
     const lastPoint = this.state.currentPoints[this.state.currentPoints.length - 1];
 
     this.preview.updatePosition(point, lastPoint);
-
-    if (this.state.currentLine) {
-      this.updateCurrentLine(point);
-    }
+    this.lineManager.update(this.state.currentPoints, point);
   }
 
   onClick(event) {
@@ -64,20 +69,27 @@ export class DrawTool extends BaseTool {
 
     const point = this.getIntersectionPoint(event);
 
-    // Check for polygon completion
-    if (this.state.currentPoints.length > 2) {
-      const startPoint = this.state.currentPoints[0];
-      if (point.distanceTo(startPoint) < TOOL_CONFIG.SNAP_DISTANCE) {
-        this.completePolygon();
-        return;
-      }
+    if (this.shouldCompletePolygon(point)) {
+      this.completePolygon();
+      return;
     }
 
+    this.addPoint(point);
+  }
+
+  shouldCompletePolygon(point) {
+    if (this.state.currentPoints.length <= 2) return false;
+
+    const startPoint = this.state.currentPoints[0];
+    return point.distanceTo(startPoint) < TOOL_CONFIG.SNAP_DISTANCE;
+  }
+
+  addPoint(point) {
     this.state.currentPoints.push(point);
-    this.createPointMarker(point);
+    this.pointManager.createMarker(point);
 
     if (this.state.currentPoints.length === 1) {
-      this.createCurrentLine();
+      this.lineManager.create();
     }
   }
 
@@ -88,75 +100,34 @@ export class DrawTool extends BaseTool {
 
   onKeyDown(event) {
     if (event.key === 'Escape' && this.isActive && this.state.currentPoints.length > 0) {
-      this.resetCurrentDrawing();
+      this.cancelDrawing();
     }
-  }
-
-  createPointMarker(position) {
-    const geometry = new THREE.CircleGeometry(TOOL_CONFIG.POINT_RADIUS, TOOL_CONFIG.POINT_SEGMENTS);
-    geometry.rotateX(-Math.PI / 2);
-    const point = new THREE.Mesh(geometry, this.materials.get('point'));
-    point.position.copy(position).setY(TOOL_CONFIG.Y_OFFSET);
-    point.userData.isVertex = true;
-    this.scene.add(point);
-    this.state.pointMarkers.push(point);
-    return point;
-  }
-
-  createCurrentLine() {
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(1000 * 3);
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setDrawRange(0, 2);
-
-    this.state.currentLine = new THREE.Line(geometry, this.materials.get('line'));
-    this.scene.add(this.state.currentLine);
-  }
-
-  updateCurrentLine(latestPoint) {
-    const line = this.state.currentLine;
-    if (!line) return;
-
-    const positions = line.geometry.attributes.position.array;
-    const points = [...this.state.currentPoints, latestPoint];
-
-    points.forEach((point, i) => {
-      const index = i * 3;
-      positions[index] = point.x;
-      positions[index + 1] = point.y;
-      positions[index + 2] = point.z;
-    });
-
-    line.geometry.setDrawRange(0, points.length);
-    line.geometry.attributes.position.needsUpdate = true;
   }
 
   completePolygon() {
     if (this.state.currentPoints.length < 3) return;
 
-    const shape = new THREE.Shape();
-    const firstPoint = this.state.currentPoints[0];
-
-    shape.moveTo(firstPoint.x, firstPoint.z);
-    this.state.currentPoints.slice(1).forEach(point => {
-      shape.lineTo(point.x, point.z);
-    });
-    shape.closePath();
-
-    const geometry = new THREE.ShapeGeometry(shape);
-    geometry.rotateX(Math.PI / 2);
-
+    const geometry = GeometryFactory.createPolygonGeometry(this.state.currentPoints);
     const mesh = new THREE.Mesh(geometry, this.materials.get('polygon'));
-    mesh.position.setY(TOOL_CONFIG.Y_OFFSET);
+
+    this.currentZIndex += 0.001;
+    mesh.position.setY(TOOL_CONFIG.Y_OFFSET + this.currentZIndex);
 
     this.scene.add(mesh);
     this.state.polygons.push(mesh);
 
-    const area = this.calculateArea();
-    this.emit('polygonComplete', { area, points: [...this.state.currentPoints] });
-
+    this.pointManager.moveToCompleted();
+    this.emitCompletionEvent();
     this.resetCurrentDrawing();
-    this.preview.hide();
+  }
+
+  emitCompletionEvent() {
+    const area = this.calculateArea();
+    this.emit('polygonComplete', {
+      area,
+      points: [...this.state.currentPoints]
+    });
+    console.log(`Area: ${area.toFixed(2)} m²`);
   }
 
   calculateArea() {
@@ -166,45 +137,47 @@ export class DrawTool extends BaseTool {
     }, 0)) / 2;
   }
 
-  clearCurrentLine() {
-    if (this.state.currentLine) {
-      this.removeFromScene(this.state.currentLine);
-      this.state.currentLine = null;
-    }
-  }
-
-  removeCurrentMarkers() {
-    this.state.pointMarkers.forEach(marker => {
-      this.removeFromScene(marker);
-    });
-    this.state.pointMarkers = [];
-  }
-
   resetCurrentDrawing() {
-    this.clearCurrentLine();
-    this.removeCurrentMarkers();
+    this.lineManager.clear();
     this.state.currentPoints = [];
+    this.preview.hide();
+  }
+
+  cancelDrawing() {
+    this.lineManager.clear();
+    this.pointManager.removeCurrentMarkers();
+    this.state.currentPoints = [];
+    this.preview.hide();
+  }
+
+  resetAllDrawings() {
+    this.cancelDrawing();
+    this.pointManager.removeAllMarkers();
+
+    this.state.polygons.forEach(polygon => {
+      this.scene.remove(polygon);
+      polygon.geometry.dispose();
+    });
+    this.state.polygons = [];
+    this.currentZIndex = 0;
   }
 
   activate() {
     super.activate();
-    this.resetCurrentDrawing();
+    this.cancelDrawing();
   }
 
   deactivate() {
     super.deactivate();
-    this.resetCurrentDrawing();
-    this.preview.hide();
+    this.cancelDrawing();
   }
 
   dispose() {
     super.dispose();
-
-    // Dispose of all geometries and materials
-    this.state.polygons.forEach(polygon => this.removeFromScene(polygon));
-    this.removeCurrentMarkers();
-    this.clearCurrentLine();
+    this.resetAllDrawings();
     this.preview.dispose();
     this.materials.dispose();
+    this.pointManager.dispose();
+    this.lineManager.dispose();
   }
 }
