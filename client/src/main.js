@@ -5,6 +5,7 @@ import { Camera } from './core/camera';
 import { Controls } from './core/controls';
 import { DrawTool } from './tools/draw';
 import { SelectTool } from './tools/select';
+import { ExtrudeTool } from './tools/extrude';
 import { SatelliteImageService } from './services/satellite-image-service';
 
 export class AetherEngine {
@@ -69,6 +70,10 @@ export class AetherEngine {
       'draw',
       new DrawTool(this.scene, this.camera, rendererInstance)
     );
+    this.tools.set(
+      'extrude',
+      new ExtrudeTool(this.scene, this.camera, rendererInstance)
+    );
 
     // Setup event listeners for selection tool
     rendererInstance.domElement.addEventListener('objectSelected', (event) => {
@@ -99,6 +104,8 @@ export class AetherEngine {
           this.tools.get('select').activate();
         } else if (button.querySelector('.fa-pencil-alt')) {
           this.tools.get('draw').activate();
+        } else if (button.querySelector('.fa-shapes')) {
+          this.tools.get('extrude').activate();
         }
       });
     });
