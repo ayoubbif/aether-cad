@@ -6,23 +6,26 @@
 }
 
 :root {
-  --primary-color: #bc7a0f;
-  --primary-hover: #0cc148;
-  --accent-color: #0a1b30;
-  --bg-darker: #030c25;
-  --bg-lighter: #0c2151;
-  --bg-transparent: rgba(9, 35, 48, 0.472);
-  --border-color: #12df6e;
-  --text-primary: #eceff1;
-  --text-secondary: #ffcc80;
+  --primary-color: #d49a3a;
+  --primary-hover: #55eea2;
+  --accent-color: #2a4a78;
 
-  /* Layout Variables */
+  --bg-darker: #0a1128;
+  --bg-lighter: #123870;
+  --bg-transparent: rgba(18, 56, 112, 0.4);
+
+  --border-color: #03f33f;
+
+  --text-primary: #f5f7fa;
+  --text-secondary: #ffc97a;
+
   --panel-width-desktop: 320px;
   --panel-width-mobile: 100%;
   --toolbar-height: 60px;
   --transition-speed: 0.2s;
   --border-radius: 8px;
 }
+
 
 body {
   overflow: hidden;
@@ -86,6 +89,27 @@ body {
   position: relative;
   width: 40px;
   height: 40px;
+}
+
+.action-button {
+  background-color: var(--bg-lighter);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-speed);
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.action-button:hover {
+  background-color: var(--border-color);
 }
 
 .tool-button:hover {

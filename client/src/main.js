@@ -84,7 +84,7 @@ export class AetherEngine {
     const toolButtons = document.querySelectorAll('.tool-button');
 
     toolButtons.forEach((button) => {
-      button.addEventListener('click', (event) => {
+      button.addEventListener('click', () => {
         // Deactivate all tools first
         this.deactivateAllTools();
 
@@ -100,7 +100,6 @@ export class AetherEngine {
         } else if (button.querySelector('.fa-pencil-alt')) {
           this.tools.get('draw').activate();
         }
-        // Add other tool activations as needed
       });
     });
   }
