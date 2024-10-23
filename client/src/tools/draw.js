@@ -44,7 +44,7 @@ export class DrawTool extends BaseTool {
   getIntersectionPoint(event) {
     const intersects = super.getIntersectionPoint(event);
 
-    const pointIntersect = intersects.find(i => i.object.userData.isVertex);
+    const pointIntersect = intersects.find((i) => i.object.userData.isVertex);
     if (pointIntersect) {
       return pointIntersect.object.position.clone();
     }
@@ -58,7 +58,8 @@ export class DrawTool extends BaseTool {
     if (!this.isActive) return;
 
     const point = this.getIntersectionPoint(event);
-    const lastPoint = this.state.currentPoints[this.state.currentPoints.length - 1];
+    const lastPoint =
+      this.state.currentPoints[this.state.currentPoints.length - 1];
 
     this.preview.updatePosition(point, lastPoint);
     this.lineManager.update(this.state.currentPoints, point);
@@ -99,7 +100,11 @@ export class DrawTool extends BaseTool {
   }
 
   onKeyDown(event) {
-    if (event.key === 'Escape' && this.isActive && this.state.currentPoints.length > 0) {
+    if (
+      event.key === 'Escape' &&
+      this.isActive &&
+      this.state.currentPoints.length > 0
+    ) {
       this.cancelDrawing();
     }
   }
@@ -107,7 +112,9 @@ export class DrawTool extends BaseTool {
   completePolygon() {
     if (this.state.currentPoints.length < 3) return;
 
-    const geometry = GeometryFactory.createPolygonGeometry(this.state.currentPoints);
+    const geometry = GeometryFactory.createPolygonGeometry(
+      this.state.currentPoints
+    );
     const mesh = new THREE.Mesh(geometry, this.materials.get('polygon'));
 
     this.currentZIndex += 0.001;
@@ -134,10 +141,15 @@ export class DrawTool extends BaseTool {
   }
 
   calculateArea() {
-    return Math.abs(this.state.currentPoints.reduce((area, point, i) => {
-      const nextPoint = this.state.currentPoints[(i + 1) % this.state.currentPoints.length];
-      return area + (point.x * nextPoint.z - nextPoint.x * point.z);
-    }, 0)) / 2;
+    return (
+      Math.abs(
+        this.state.currentPoints.reduce((area, point, i) => {
+          const nextPoint =
+            this.state.currentPoints[(i + 1) % this.state.currentPoints.length];
+          return area + (point.x * nextPoint.z - nextPoint.x * point.z);
+        }, 0)
+      ) / 2
+    );
   }
 
   resetCurrentDrawing() {
@@ -157,7 +169,7 @@ export class DrawTool extends BaseTool {
     this.cancelDrawing();
     this.pointManager.removeAllMarkers();
 
-    this.state.polygons.forEach(polygon => {
+    this.state.polygons.forEach((polygon) => {
       this.scene.remove(polygon);
       polygon.geometry.dispose();
     });

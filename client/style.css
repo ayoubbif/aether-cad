@@ -16,7 +16,6 @@
   --text-primary: #eceff1;
   --text-secondary: #ffcc80;
 
-
   /* Layout Variables */
   --panel-width-desktop: 320px;
   --panel-width-mobile: 100%;
@@ -24,7 +23,6 @@
   --transition-speed: 0.2s;
   --border-radius: 8px;
 }
-
 
 body {
   overflow: hidden;

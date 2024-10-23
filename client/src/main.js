@@ -61,8 +61,14 @@ export class AetherEngine {
     const rendererInstance = this.renderer.getRenderer();
 
     // Initialize tools and store them in the tools Map
-    this.tools.set('select', new SelectTool(this.scene, this.camera, rendererInstance));
-    this.tools.set('draw', new DrawTool(this.scene, this.camera, rendererInstance));
+    this.tools.set(
+      'select',
+      new SelectTool(this.scene, this.camera, rendererInstance)
+    );
+    this.tools.set(
+      'draw',
+      new DrawTool(this.scene, this.camera, rendererInstance)
+    );
 
     // Setup event listeners for selection tool
     rendererInstance.domElement.addEventListener('objectSelected', (event) => {

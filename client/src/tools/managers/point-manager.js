@@ -33,7 +33,7 @@ export class PointManager {
   }
 
   removeCurrentMarkers() {
-    this.currentMarkers.forEach(marker => {
+    this.currentMarkers.forEach((marker) => {
       this.scene.remove(marker);
       marker.geometry.dispose();
     });
@@ -42,7 +42,7 @@ export class PointManager {
 
   removeAllMarkers() {
     this.removeCurrentMarkers();
-    this.completedMarkers.forEach(marker => {
+    this.completedMarkers.forEach((marker) => {
       this.scene.remove(marker);
       marker.geometry.dispose();
     });

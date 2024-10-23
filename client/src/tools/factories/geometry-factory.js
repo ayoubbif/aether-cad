@@ -12,7 +12,7 @@ export class GeometryFactory {
     const firstPoint = points[0];
 
     shape.moveTo(firstPoint.x, firstPoint.z);
-    points.slice(1).forEach(point => {
+    points.slice(1).forEach((point) => {
       shape.lineTo(point.x, point.z);
     });
     shape.closePath();

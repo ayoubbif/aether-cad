@@ -10,7 +10,10 @@ export class PreviewManager {
   }
 
   createPreviewPoint() {
-    const geometry = new THREE.CircleGeometry(TOOL_CONFIG.POINT_RADIUS, TOOL_CONFIG.POINT_SEGMENTS);
+    const geometry = new THREE.CircleGeometry(
+      TOOL_CONFIG.POINT_RADIUS,
+      TOOL_CONFIG.POINT_SEGMENTS
+    );
     geometry.rotateX(-Math.PI / 2);
     const point = new THREE.Mesh(geometry, this.materials.get('point'));
     point.material.transparent = true;
@@ -35,7 +38,14 @@ export class PreviewManager {
 
     if (lastPoint) {
       const positions = this.line.geometry.attributes.position.array;
-      positions.set([lastPoint.x, lastPoint.y, lastPoint.z, point.x, point.y, point.z]);
+      positions.set([
+        lastPoint.x,
+        lastPoint.y,
+        lastPoint.z,
+        point.x,
+        point.y,
+        point.z
+      ]);
       this.line.geometry.attributes.position.needsUpdate = true;
       this.line.visible = true;
     }
@@ -47,7 +57,7 @@ export class PreviewManager {
   }
 
   dispose() {
-    [this.point, this.line].forEach(object => {
+    [this.point, this.line].forEach((object) => {
       if (object) {
         this.scene.remove(object);
         object.geometry.dispose();

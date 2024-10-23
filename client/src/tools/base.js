@@ -21,7 +21,9 @@ export class BaseTool {
   }
 
   updateCursor() {
-    document.body.style.cursor = this.isActive ? this.getCursorStyle() : 'default';
+    document.body.style.cursor = this.isActive
+      ? this.getCursorStyle()
+      : 'default';
   }
 
   getCursorStyle() {

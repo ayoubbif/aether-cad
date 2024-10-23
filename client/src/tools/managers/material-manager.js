@@ -38,6 +38,6 @@ export class MaterialManager {
   }
 
   dispose() {
-    Object.values(this.materials).forEach(material => material.dispose());
+    Object.values(this.materials).forEach((material) => material.dispose());
   }
 }

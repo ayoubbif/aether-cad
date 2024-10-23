@@ -34,7 +34,7 @@ export class SelectTool extends BaseTool {
   }
 
   findDrawnPolygon(intersects) {
-    return intersects.find(intersect => {
+    return intersects.find((intersect) => {
       const object = intersect.object;
       return (
         object instanceof THREE.Mesh &&
@@ -76,7 +76,7 @@ export class SelectTool extends BaseTool {
   removeFromSceneWithPoints(object) {
     // Remove associated marker points
     if (object.userData.markerPoints) {
-      object.userData.markerPoints.forEach(point => {
+      object.userData.markerPoints.forEach((point) => {
         this.scene.remove(point);
         point.geometry.dispose();
       });
