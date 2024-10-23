@@ -6,11 +6,11 @@ export class MaterialManager {
     this.materials = {
       line: new THREE.LineBasicMaterial({
         color: TOOL_CONFIG.COLORS.LINE,
-        linewidth: 1
+        linewidth: 10
       }),
       previewLine: new THREE.LineBasicMaterial({
         color: TOOL_CONFIG.COLORS.LINE,
-        linewidth: 1
+        linewidth: 10
       }),
       point: new THREE.MeshBasicMaterial({
         color: TOOL_CONFIG.COLORS.POINT
@@ -28,6 +28,12 @@ export class MaterialManager {
         color: TOOL_CONFIG.COLORS.SELECTED,
         transparent: true,
         opacity: TOOL_CONFIG.SELECTED_OPACITY,
+        side: THREE.DoubleSide
+      }),
+      extruded: new THREE.MeshBasicMaterial({
+        color: TOOL_CONFIG.COLORS.OBJECT,
+        transparent: true,
+        opacity: TOOL_CONFIG.OBJECT_OPACITY,
         side: THREE.DoubleSide
       })
     };
