@@ -3,10 +3,13 @@ import { Scene } from './core/scene';
 import { Renderer } from './core/renderer';
 import { Camera } from './core/camera';
 import { Controls } from './core/controls';
+import { DrawTool } from './tools/draw';
+import { SelectTool } from './tools/select';
 import { SatelliteImageService } from './services/satellite-image-service';
 
 export class AetherEngine {
   constructor() {
+    this.tools = new Map();
     this.initializationPromise = this.initialize();
   }
 
@@ -24,7 +27,7 @@ export class AetherEngine {
 
   async waitForDOM() {
     if (document.readyState === 'loading') {
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         document.addEventListener('DOMContentLoaded', resolve);
       });
     }
@@ -48,6 +51,58 @@ export class AetherEngine {
     this.camera = this.cameraManager.getCamera();
     this.controlsManager = new Controls(this.camera, this.canvas);
     this.controls = this.controlsManager.getControls();
+
+    // Initialize tools
+    this.initializeTools();
+    this.setupToolButtons();
+  }
+
+  initializeTools() {
+    const rendererInstance = this.renderer.getRenderer();
+
+    // Initialize tools and store them in the tools Map
+    this.tools.set('select', new SelectTool(this.scene, this.camera, rendererInstance));
+    this.tools.set('draw', new DrawTool(this.scene, this.camera, rendererInstance));
+
+    // Setup event listeners for selection tool
+    rendererInstance.domElement.addEventListener('objectSelected', (event) => {
+      console.log('Object selected:', event.detail.object);
+    });
+
+    rendererInstance.domElement.addEventListener('objectDeleted', () => {
+      console.log('Object deleted');
+    });
+  }
+
+  setupToolButtons() {
+    const toolButtons = document.querySelectorAll('.tool-button');
+
+    toolButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        // Deactivate all tools first
+        this.deactivateAllTools();
+
+        // Remove active class from all buttons
+        toolButtons.forEach((btn) => btn.classList.remove('active'));
+
+        // Add active class to clicked button
+        button.classList.add('active');
+
+        // Activate the appropriate tool
+        if (button.querySelector('.fa-mouse-pointer')) {
+          this.tools.get('select').activate();
+        } else if (button.querySelector('.fa-pencil-alt')) {
+          this.tools.get('draw').activate();
+        }
+        // Add other tool activations as needed
+      });
+    });
+  }
+
+  deactivateAllTools() {
+    for (const tool of this.tools.values()) {
+      tool.deactivate();
+    }
   }
 
   setupEventHandlers() {
@@ -70,7 +125,10 @@ export class AetherEngine {
       const element = document.getElementById(elementId);
       if (element) {
         element.addEventListener('change', (event) => {
-          this.sceneManager.toggleLayerVisibility(layerType, event.target.checked);
+          this.sceneManager.toggleLayerVisibility(
+            layerType,
+            event.target.checked
+          );
         });
       }
     });
@@ -94,7 +152,7 @@ export class AetherEngine {
   }
 
   getImageParameters() {
-    return ['latitude', 'longitude', 'zoom'].map(id => {
+    return ['latitude', 'longitude', 'zoom'].map((id) => {
       const element = document.getElementById(id);
       return element ? element.value : null;
     });
@@ -104,8 +162,8 @@ export class AetherEngine {
     return new Promise((resolve, reject) => {
       new THREE.TextureLoader().load(
         imageUrl,
-        texture => {
-          this.sceneManager.setSatelliteImage(texture);
+        (texture) => {
+          this.sceneManager.setImage(texture);
           resolve(texture);
         },
         undefined,
@@ -130,4 +188,3 @@ export class AetherEngine {
 }
 
 const app = new AetherEngine();
-
