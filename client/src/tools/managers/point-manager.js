@@ -25,8 +25,11 @@ export class PointManager {
   }
 
   moveToCompleted() {
-    this.completedMarkers.push(...this.currentMarkers);
+    // Store reference to the current batch of markers
+    const currentBatch = [...this.currentMarkers];
+    this.completedMarkers.push(...currentBatch);
     this.currentMarkers = [];
+    return currentBatch;
   }
 
   removeCurrentMarkers() {
