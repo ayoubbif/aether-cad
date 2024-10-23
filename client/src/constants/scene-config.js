@@ -6,7 +6,7 @@ export const SCENE_CONFIG = {
   },
   PLANE: {
     SIZE: 10,
-    COLOR: 0xeeeeee
+    COLOR: 0x000000
   },
   LIGHT: {
     COLOR: 0xffffff,

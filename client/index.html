@@ -33,7 +33,7 @@
                 </button>
             </div>
             <div class="toolbar-section">
-                <button class="tool-button" id="toggle-panel" title="Toggle Panel">
+                <button class="tool-button" id="toggle-panel" title="Inspector">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -41,14 +41,14 @@
         <div class="main-content">
             <div class="side-panel" id="side-panel">
                 <div class="panel-section">
-                    <h3>Location Settings</h3>
+                    <h3>Inspector</h3>
+                    <div class="input-group">
+                      <label for="latitude">Latitude</label>
+                      <input type="text" id="latitude" value="40.3334" />
+                  </div>
                     <div class="input-group">
                         <label for="longitude">Longitude</label>
                         <input type="text" id="longitude" value="-74.2560" />
-                    </div>
-                    <div class="input-group">
-                        <label for="latitude">Latitude</label>
-                        <input type="text" id="latitude" value="40.3334" />
                     </div>
                     <div class="input-group">
                         <label for="zoom">Zoom Level</label>
@@ -67,8 +67,8 @@
                             <label for="layer1">Satellite Imagery</label>
                         </div>
                         <div class="layer-item">
-                            <input type="checkbox" id="layer3" />
-                            <label for="layer3">Grid Overlay</label>
+                            <input type="checkbox" id="layer2" />
+                            <label for="layer2">Grid Overlay</label>
                         </div>
                     </div>
                 </div>
