@@ -6,50 +6,67 @@
 }
 
 :root {
-  --primary-color: #04b983;
-  --primary-hover: #12b587;
-  --bg-dark: #0d0d0d;
-  --bg-darker: #1a1a1a;
-  --bg-lighter: #2d2d2d;
-  --bg-transparent: rgba(0, 0, 0, 0.5);
-  --border-color: #006eff;
-  --text-primary: #ffffff;
-  --text-secondary: #88e00d;
-  --panel-width: 320px;
-  --toolbar-height: 50px;
-  --transition-speed: 0.3s;
+  /* Modern Dark Theme Colors */
+  --primary-color: #11b070;
+  --primary-hover: #0e4fe6;
+  --accent-color: #10b981;
+  --bg-dark: #0f172a;
+  --bg-darker: #020617;
+  --bg-lighter: #1e293b;
+  --bg-transparent: rgba(15, 23, 42, 0.95);
+  --border-color: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+
+  /* Layout Variables */
+  --panel-width-desktop: 320px;
+  --panel-width-mobile: 100%;
+  --toolbar-height: 60px;
+  --transition-speed: 0.2s;
+  --border-radius: 8px;
 }
+
 
 body {
   overflow: hidden;
   background-color: var(--bg-dark);
   color: var(--text-primary);
+  line-height: 1.5;
 }
 
 #app {
   display: grid;
   grid-template-rows: var(--toolbar-height) 1fr;
   height: 100vh;
+  position: relative;
 }
 
 /* Toolbar Styles */
 .toolbar {
   background-color: var(--bg-darker);
-  padding: 0 0px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   height: var(--toolbar-height);
   z-index: 100;
+  position: relative;
 }
 
 .toolbar-section {
   display: flex;
-  gap: 8px;
-  padding: 0 8px;
+  gap: 12px;
+  padding: 0 12px;
   height: 100%;
   align-items: center;
+}
+
+@media (max-width: 768px) {
+  .toolbar-section {
+    padding: 0 8px;
+    gap: 8px;
+  }
 }
 
 .toolbar-section:not(:last-child) {
@@ -59,10 +76,10 @@ body {
 
 .tool-button {
   background-color: var(--bg-lighter);
-  border: none;
+  border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 8px 8px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -70,8 +87,8 @@ body {
   gap: 8px;
   transition: all var(--transition-speed);
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
 }
 
 .tool-button:hover {
