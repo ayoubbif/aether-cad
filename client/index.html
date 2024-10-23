@@ -1,95 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aether CAD</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+  </head>
+  <body>
     <div id="app">
-        <div class="toolbar">
-            <div class="toolbar-section">
-                <button class="tool-button active" title="Select Tool">
-                    <i class="fas fa-mouse-pointer"></i>
-                </button>
-                <button class="tool-button" title="Draw Tool">
-                    <i class="fas fa-pencil-alt"></i>
-                </button>
-                <button class="tool-button" title="Measure Tool">
-                    <i class="fas fa-ruler-combined"></i>
-                </button>
-                <button class="tool-button" title="Shape Tool">
-                    <i class="fas fa-shapes"></i>
-                </button>
-            </div>
-            <div class="toolbar-section">
-                <button class="tool-button" title="Undo">
-                    <i class="fas fa-undo"></i>
-                </button>
-                <button class="tool-button" title="Redo">
-                    <i class="fas fa-redo"></i>
-                </button>
-            </div>
-            <div class="toolbar-section">
-                <button class="tool-button" id="toggle-panel" title="Inspector">
-                    <i class="fas fa-bars"></i>
-                </button>
-            </div>
+      <div class="toolbar">
+        <div class="toolbar-section">
+          <button class="tool-button active" title="Select Tool">
+            <i class="fas fa-mouse-pointer"></i>
+          </button>
+          <button class="tool-button" title="Draw Tool">
+            <i class="fas fa-pencil-alt"></i>
+          </button>
+          <button class="tool-button" title="Measure Tool">
+            <i class="fas fa-ruler-combined"></i>
+          </button>
+          <button class="tool-button" title="Shape Tool">
+            <i class="fas fa-shapes"></i>
+          </button>
         </div>
-        <div class="main-content">
-            <div class="side-panel" id="side-panel">
-                <div class="panel-section">
-                    <h3>Inspector</h3>
-                    <div class="input-group">
-                      <label for="latitude">Latitude</label>
-                      <input type="text" id="latitude" value="40.3334" />
-                  </div>
-                    <div class="input-group">
-                        <label for="longitude">Longitude</label>
-                        <input type="text" id="longitude" value="-74.2560" />
-                    </div>
-                    <div class="input-group">
-                        <label for="zoom">Zoom Level</label>
-                        <input type="number" id="zoom" value="18" min="0" max="22" />
-                    </div>
-                    <button class="fetch-button" id="fetch-image">
-                        <i class="fas fa-satellite"></i> Fetch Image
-                    </button>
-                </div>
+        <div class="toolbar-section">
+          <button class="tool-button" title="Undo">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button class="tool-button" title="Redo">
+            <i class="fas fa-redo"></i>
+          </button>
+        </div>
+        <div class="toolbar-section">
+          <button class="tool-button" id="toggle-panel" title="Inspector">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </div>
+      <div class="main-content">
+        <div class="side-panel" id="side-panel">
+          <div class="panel-section">
+            <h3>Inspector</h3>
+            <div class="input-group">
+              <label for="latitude">Latitude</label>
+              <input type="text" id="latitude" value="40.3334" />
+            </div>
+            <div class="input-group">
+              <label for="longitude">Longitude</label>
+              <input type="text" id="longitude" value="-74.2560" />
+            </div>
+            <div class="input-group">
+              <label for="zoom">Zoom Level</label>
+              <input
+                type="number"
+                id="zoom"
+                value="18"
+                min="0"
+                max="22"
+                step="0.01"
+              />
+            </div>
+            <button class="fetch-button" id="fetch-image">
+              <i class="fas fa-satellite"></i> Fetch Image
+            </button>
+          </div>
 
-                <div class="panel-section">
-                    <h3>Layer Controls</h3>
-                    <div class="layer-list">
-                        <div class="layer-item">
-                            <input type="checkbox" id="layer1" checked />
-                            <label for="layer1">Satellite Imagery</label>
-                        </div>
-                        <div class="layer-item">
-                            <input type="checkbox" id="layer2" />
-                            <label for="layer2">Grid Overlay</label>
-                        </div>
-                    </div>
-                </div>
+          <div class="panel-section">
+            <h3>Layer Controls</h3>
+            <div class="layer-list">
+              <div class="layer-item">
+                <input type="checkbox" id="layer1" checked />
+                <label for="layer1">Satellite Imagery</label>
+              </div>
+              <div class="layer-item">
+                <input type="checkbox" id="layer2" />
+                <label for="layer2">Grid Overlay</label>
+              </div>
             </div>
-            <div class="viewport">
-                <canvas id="three-canvas"></canvas>
-                <div class="coordinates-panel">
-                    <div class="coord-item">X: <span>0.000</span></div>
-                    <div class="coord-item">Y: <span>0.000</span></div>
-                    <div class="coord-item">Z: <span>0.000</span></div>
-                </div>
-            </div>
+          </div>
         </div>
+        <div class="viewport">
+          <canvas id="three-canvas"></canvas>
+          <div class="coordinates-panel">
+            <div class="coord-item">X: <span>0.000</span></div>
+            <div class="coord-item">Y: <span>0.000</span></div>
+            <div class="coord-item">Z: <span>0.000</span></div>
+          </div>
+        </div>
+      </div>
     </div>
     <script type="module" src="src/main.js"></script>
     <script>
-        const togglePanelButton = document.getElementById('toggle-panel');
-        const sidePanel = document.getElementById('side-panel');
-        togglePanelButton.addEventListener('click', () => {
-            sidePanel.classList.toggle('open');
-        });
+      const togglePanelButton = document.getElementById('toggle-panel');
+      const sidePanel = document.getElementById('side-panel');
+      togglePanelButton.addEventListener('click', () => {
+        sidePanel.classList.toggle('open');
+      });
     </script>
-</body>
+  </body>
 </html>

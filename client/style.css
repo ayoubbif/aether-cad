@@ -217,7 +217,7 @@ body {
   gap: 8px;
 }
 
-.layer-item input[type="checkbox"] {
+.layer-item input[type='checkbox'] {
   cursor: pointer;
 }
 
