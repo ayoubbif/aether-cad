@@ -67,9 +67,26 @@ export class SelectTool extends BaseTool {
 
   deleteSelected() {
     if (this.selectedObject) {
-      this.removeFromScene(this.selectedObject);
+      this.removeFromSceneWithPoints(this.selectedObject);
       this.selectedObject = null;
       this.emit('objectDeleted');
+    }
+  }
+
+  removeFromSceneWithPoints(object) {
+    // Remove associated marker points
+    if (object.userData.markerPoints) {
+      object.userData.markerPoints.forEach(point => {
+        this.scene.remove(point);
+        point.geometry.dispose();
+      });
+    }
+
+    // Remove the polygon
+    this.scene.remove(object);
+    object.geometry.dispose();
+    if (object.material && !this.originalMaterials.has(object)) {
+      object.material.dispose();
     }
   }
 
