@@ -5,6 +5,7 @@ import { Controls } from './core/controls';
 
 export class AetherEngine {
   constructor() {
+    // Check if DOM is ready before initializing
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.initialize());
     } else {
@@ -13,23 +14,25 @@ export class AetherEngine {
   }
 
   initialize() {
-    this.init();
+    this.init(); // Get DOM elements
     this.setupCore();
     this.setupEventListeners();
     this.animate();
   }
 
   init() {
+    // Locate required DOM elements for rendering
     this.viewport = document.querySelector('.viewport');
     this.canvas = document.querySelector('#three-canvas');
 
+    // Error handling if elements are missing
     if (!this.viewport || !this.canvas) {
       throw new Error('Required DOM elements not found');
     }
   }
 
   setupCore() {
-    // Initialize core components
+    // Initialize core components: scene, renderer, camera, and controls
     this.sceneManager = new Scene(this.viewport);
     this.scene = this.sceneManager.getScene();
 
@@ -43,10 +46,12 @@ export class AetherEngine {
   }
 
   setupEventListeners() {
+    // Update layout on window resize
     window.addEventListener('resize', () => this.handleResize());
   }
 
   handleResize() {
+    // Resize renderer and camera when window is resized
     if (this.renderer) {
       this.renderer.resize();
     }
@@ -56,13 +61,14 @@ export class AetherEngine {
   }
 
   animate() {
+    // Recursive animation loop
     requestAnimationFrame(() => this.animate());
-    this.controlsManager.update();
-    this.renderer.render(this.scene, this.camera);
+    this.controlsManager.update(); // Update controls
+    this.renderer.render(this.scene, this.camera); // Render the scene
   }
 }
 
-// Initialize the application
+// Initialize the application on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   const app = new AetherEngine();
 });
