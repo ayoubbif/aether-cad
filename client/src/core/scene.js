@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { SCENE_CONFIG } from '../constants/scene-config';
 import { GridLayer } from './layers/grid';
-import { BasePlaneLayer } from './layers/base-plane';
-import { SatelliteLayer } from './layers/image';
+import { ImageLayer } from './layers/image';
 
 export class Scene {
   constructor() {
@@ -27,8 +26,7 @@ export class Scene {
 
   initLayers() {
     this.addLayer(new GridLayer(this.scene));
-    this.addLayer(new BasePlaneLayer(this.scene));
-    this.addLayer(new SatelliteLayer(this.scene));
+    this.addLayer(new ImageLayer(this.scene));
   }
 
   addLayer(layer) {
@@ -46,10 +44,10 @@ export class Scene {
     }
   }
 
-  setSatelliteImage(texture) {
-    const satelliteLayer = this.getLayer('image');
-    if (satelliteLayer) {
-      satelliteLayer.updateTexture(texture);
+  setImage(texture) {
+    const imageLayer = this.getLayer('image');
+    if (imageLayer) {
+      imageLayer.updateTexture(texture);
     }
   }
 
