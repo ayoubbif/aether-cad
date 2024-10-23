@@ -13,7 +13,7 @@ export class Renderer {
     // Create a WebGLRenderer with antialiasing and bind it to the canvas
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
+      antialias: true
     });
 
     // Set the initial size of the renderer
@@ -31,5 +31,9 @@ export class Renderer {
   render(scene, camera) {
     // Render the scene using the provided camera
     this.renderer.render(scene, camera);
+  }
+
+  getRenderer() {
+    return this.renderer;
   }
 }
