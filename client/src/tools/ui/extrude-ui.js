@@ -67,7 +67,7 @@ export class ExtrudeUI {
   createUI() {
     this.container = this.createContainer();
     this.heightInput = this.createNumberInput('Height:', '0.01', '0.01');
-    this.pitchInput = this.createNumberInput('Pitch (degrees):', '0', '1', '0', '90');
+    this.pitchInput = this.createNumberInput('Pitch (degrees):', '0', '1', '-90', '90');
     this.appendUIElements();
   }
 
@@ -134,7 +134,7 @@ export class ExtrudeUI {
     this.pitchInput.input.addEventListener('change', (event) => {
       const newPitch = parseFloat(event.target.value);
       const height = parseFloat(this.heightInput.input.value);
-      if (!isNaN(newPitch) && newPitch >= 0 && newPitch <= 90) {
+      if (!isNaN(newPitch) && newPitch >= -90 && newPitch <= 90) {
         handler(newPitch, height);
       }
     });

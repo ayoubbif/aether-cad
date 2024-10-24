@@ -58,7 +58,7 @@ export class ExtrudeTool extends BaseTool {
   }
 
   isValidPitch(pitch) {
-    return !isNaN(pitch) && pitch >= 0 && pitch <= 90;
+    return !isNaN(pitch) && pitch >= -90 && pitch <= 90;
   }
 
   getCursorStyle() {
