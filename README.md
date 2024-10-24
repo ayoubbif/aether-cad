@@ -2,8 +2,6 @@
 
 An interactive Computer-Aided Design (CAD) tool that empowers users to create 3D structures overlaid on map imagery. Built with Three.js for powerful 3D rendering capabilities, integrated with Mapbox Static Images API for high-quality base maps, and powered by a Flask backend.
 
-![Aether CAD Demo](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWs1M2RkYmp6Y2Zsd3N5ejFqOHFlbTVoZ2hlbHNuYXAyM3RnNnhtNSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QAgIIVP5CeFSqITjSy/giphy.webp)
-
 ## ✨ Features
 
 - **Map Integration**: Seamless loading of high-resolution map imagery from Mapbox Static Images API
@@ -105,7 +103,7 @@ Retrieves static map imagery from Mapbox API
 | Parameter | Type  | Required | Default | Description       |
 | --------- | ----- | -------- | ------- | ----------------- |
 | lat       | float | Yes      | -       | Latitude          |
-| lng       | float | Yes      | -       | Longitude         |
+| lon       | float | Yes      | -       | Longitude         |
 | zoom      | int   | Yes      | -       | Zoom level        |
 | width     | int   | No       | 600     | Image width (px)  |
 | height    | int   | No       | 400     | Image height (px) |
