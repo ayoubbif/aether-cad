@@ -43,7 +43,6 @@ def generate_mapbox_url(lat, lon, zoom=18, width=600, height=400):
     # Construct the final URL with access token
     return f"{base_url}/{center},{zoom}/{size}@2x?access_token={MAPBOX_ACCESS_TOKEN}"
 
-
 @app.route('/satellite_image', methods=['GET'])
 def get_satellite_image():
     """API endpoint to retrieve a satellite image based on coordinates."""
@@ -72,5 +71,5 @@ def get_satellite_image():
     return send_file(BytesIO(response.content), mimetype='image/png')
 
 if __name__ == '__main__':
-    # Start the Flask app with debugging enabled
-    app.run(debug=True)
+    # Start the Flask app
+    app.run(host='0.0.0.0', port=5000)
