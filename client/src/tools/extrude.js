@@ -126,7 +126,7 @@ export class ExtrudeTool extends BaseTool {
     // Convert pitch from degrees to radians
     const pitchRad = (pitch * Math.PI) / 180;
 
-    // Create extruded geometry with pitch
+    // Create extruded geometry with base height
     const extrudeSettings = {
       steps: 1,
       depth: height,
@@ -136,18 +136,38 @@ export class ExtrudeTool extends BaseTool {
     const shape = new THREE.Shape(points.map(p => new THREE.Vector2(p.x, p.y)));
     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 
-    // Apply pitch transformation to the geometry
+    // Find the bounds of the geometry to determine the pivot point
     const vertices = geometry.attributes.position.array;
+    let minX = Infinity;
+    let maxX = -Infinity;
+
+    // First pass: find the bounds
     for (let i = 0; i < vertices.length; i += 3) {
-      const y = vertices[i + 1];
+      const x = vertices[i];
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+    }
+
+    // Determine which edge to pivot from based on pitch direction
+    const pivotX = pitch >= 0 ? minX : maxX;
+    const width = Math.abs(maxX - minX);
+
+    // Second pass: modify vertices for pitched roof
+    for (let i = 0; i < vertices.length; i += 3) {
+      const x = vertices[i];
       const z = vertices[i + 2];
 
       // Only modify vertices at the top face
       if (Math.abs(z - height) < 0.001) {
-        // Calculate new height based on pitch and x position
-        const xPos = vertices[i];
-        const heightOffset = Math.tan(pitchRad) * xPos;
-        vertices[i + 2] = height + heightOffset;
+        // Calculate distance from pivot point
+        const distanceFromPivot = Math.abs(x - pivotX);
+
+        // Calculate new height based on pitch and distance from pivot
+        const heightOffset = Math.abs(Math.tan(pitchRad) * distanceFromPivot);
+
+        if ((pitch >= 0 && x >= pivotX) || (pitch < 0 && x <= pivotX)) {
+          vertices[i + 2] = height + heightOffset;
+        }
       }
     }
 
