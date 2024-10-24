@@ -5,12 +5,13 @@ export class ExtrudeUI {
   }
 
   createUI() {
-    this.heightInputContainer = this.createHeightInputContainer();
-    this.heightInput = this.createHeightInput();
+    this.container = this.createContainer();
+    this.heightInput = this.createNumberInput('Height:', '0.01', '0.01');
+    this.pitchInput = this.createNumberInput('Pitch (degrees):', '0', '1', '0', '90');
     this.appendUIElements();
   }
 
-  createHeightInputContainer() {
+  createContainer() {
     const container = document.createElement('div');
     Object.assign(container.style, {
       position: 'absolute',
@@ -24,50 +25,73 @@ export class ExtrudeUI {
     return container;
   }
 
-  createHeightInput() {
+  createNumberInput(labelText, defaultValue, step, min = '0.01', max = null) {
+    const wrapper = document.createElement('div');
+    wrapper.style.marginBottom = '5px';
+
     const label = document.createElement('label');
-    label.textContent = 'Height: ';
+    label.textContent = labelText;
     label.style.color = 'white';
     label.style.marginRight = '5px';
 
     const input = document.createElement('input');
     Object.assign(input, {
       type: 'number',
-      step: '0.01',
-      min: '0.01',
+      value: defaultValue,
+      step: step,
+      min: min,
       style: { width: '60px' }
     });
 
-    return { label, input };
+    if (max !== null) {
+      input.max = max;
+    }
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+
+    return { wrapper, input };
   }
 
   appendUIElements() {
-    this.heightInputContainer.appendChild(this.heightInput.label);
-    this.heightInputContainer.appendChild(this.heightInput.input);
-    this.parentElement.appendChild(this.heightInputContainer);
+    this.container.appendChild(this.heightInput.wrapper);
+    this.container.appendChild(this.pitchInput.wrapper);
+    this.parentElement.appendChild(this.container);
   }
 
-  show(height) {
+  show(height, pitch = 0) {
     this.heightInput.input.value = height.toFixed(1);
-    this.heightInputContainer.style.display = 'block';
+    this.pitchInput.input.value = pitch.toFixed(1);
+    this.container.style.display = 'block';
   }
 
   hide() {
-    this.heightInputContainer.style.display = 'none';
+    this.container.style.display = 'none';
   }
 
   setHeightChangeHandler(handler) {
     this.heightInput.input.addEventListener('change', (event) => {
       const newHeight = parseFloat(event.target.value);
+      const pitch = parseFloat(this.pitchInput.input.value);
       if (!isNaN(newHeight) && newHeight >= 0.01) {
-        handler(newHeight);
+        handler(newHeight, pitch);
+      }
+    });
+  }
+
+  setPitchChangeHandler(handler) {
+    this.pitchInput.input.addEventListener('change', (event) => {
+      const newPitch = parseFloat(event.target.value);
+      const height = parseFloat(this.heightInput.input.value);
+      if (!isNaN(newPitch) && newPitch >= 0 && newPitch <= 90) {
+        handler(newPitch, height);
       }
     });
   }
 
   dispose() {
-    if (this.heightInputContainer?.parentElement) {
-      this.heightInputContainer.parentElement.removeChild(this.heightInputContainer);
+    if (this.container?.parentElement) {
+      this.container.parentElement.removeChild(this.container);
     }
   }
 }

@@ -27,20 +27,38 @@ export class ExtrudeTool extends BaseTool {
   initializeUI() {
     this.ui = new ExtrudeUI(this.renderer.domElement.parentElement);
     this.ui.setHeightChangeHandler(this.handleHeightInputChange.bind(this));
+    this.ui.setPitchChangeHandler(this.handlePitchInputChange.bind(this));
   }
 
-  handleHeightInputChange(newHeight) {
+  handleHeightInputChange(newHeight, pitch) {
     if (this.isValidHeight(newHeight)) {
-      this.extrudePolygon(this.selectedObject, newHeight);
+      this.extrudePolygon(this.selectedObject, newHeight, pitch);
       this.emit('extrudeComplete', {
         object: this.selectedObject,
-        height: newHeight
+        height: newHeight,
+        pitch: pitch
       });
     }
   }
 
+  handlePitchInputChange(newPitch, height) {
+    if (this.isValidPitch(newPitch)) {
+      this.extrudePolygon(this.selectedObject, height, newPitch);
+      this.emit('extrudeComplete', {
+        object: this.selectedObject,
+        height: height,
+        pitch: newPitch
+      });
+    }
+  }
+
+
   isValidHeight(height) {
     return !isNaN(height) && height >= 0.01;
+  }
+
+  isValidPitch(pitch) {
+    return !isNaN(pitch) && pitch >= 0 && pitch <= 90;
   }
 
   getCursorStyle() {
@@ -72,6 +90,13 @@ export class ExtrudeTool extends BaseTool {
     }
   }
 
+  onKeyDown(event) {
+    if (!this.isActive) return;
+    if (event.key === 'Escape') {
+      this.clearSelection();
+    }
+  }
+
   handleObjectSelection(object) {
     if (!object?.userData) {
       console.error('Invalid object selected');
@@ -80,36 +105,60 @@ export class ExtrudeTool extends BaseTool {
 
     this.selectedObject = object;
     const currentHeight = object.userData.extrudeHeight || 0;
+    const currentPitch = object.userData.pitch || 0;
 
     if (!object.userData.markerPoints) {
       console.error('No marker points found for polygon');
       return;
     }
 
-    this.ui.show(currentHeight);
+    this.ui.show(currentHeight, currentPitch);
     this.emit('objectSelected', { object });
   }
 
-  onKeyDown(event) {
-    if (!this.isActive) return;
-    if (event.key === 'Escape') {
-      this.clearSelection();
-    }
-  }
 
-  extrudePolygon(polygon, height) {
+  extrudePolygon(polygon, height, pitch = 0) {
     if (!this.validatePolygon(polygon)) return;
 
     const points = this.getPolygonPoints(polygon);
     if (points.length < 3) return;
 
-    const geometry = GeometryFactory.createExtrudedGeometry(points, height);
+    // Convert pitch from degrees to radians
+    const pitchRad = (pitch * Math.PI) / 180;
 
-    this.updatePolygonGeometry(polygon, geometry, height);
+    // Create extruded geometry with pitch
+    const extrudeSettings = {
+      steps: 1,
+      depth: height,
+      bevelEnabled: false
+    };
+
+    const shape = new THREE.Shape(points.map(p => new THREE.Vector2(p.x, p.y)));
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+
+    // Apply pitch transformation to the geometry
+    const vertices = geometry.attributes.position.array;
+    for (let i = 0; i < vertices.length; i += 3) {
+      const y = vertices[i + 1];
+      const z = vertices[i + 2];
+
+      // Only modify vertices at the top face
+      if (Math.abs(z - height) < 0.001) {
+        // Calculate new height based on pitch and x position
+        const xPos = vertices[i];
+        const heightOffset = Math.tan(pitchRad) * xPos;
+        vertices[i + 2] = height + heightOffset;
+      }
+    }
+
+    geometry.attributes.position.needsUpdate = true;
+    geometry.computeVertexNormals();
+
+    this.updatePolygonGeometry(polygon, geometry, height, pitch);
     this.updatePolygonMaterial(polygon);
     this.updatePolygonOutline(polygon, geometry);
 
-    this.emit('heightChanged', { height });
+    this.emit('heightChanged', { height, pitch });
   }
 
   validatePolygon(polygon) {
@@ -123,12 +172,13 @@ export class ExtrudeTool extends BaseTool {
     }));
   }
 
-  updatePolygonGeometry(polygon, geometry, height) {
+  updatePolygonGeometry(polygon, geometry, height, pitch) {
     if (polygon.geometry) {
       polygon.geometry.dispose();
     }
     polygon.geometry = geometry;
     polygon.userData.extrudeHeight = height;
+    polygon.userData.pitch = pitch;
     polygon.rotation.x = -Math.PI / 2;
   }
 
