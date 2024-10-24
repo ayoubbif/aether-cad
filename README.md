@@ -1,122 +1,153 @@
-# Aether CAD
+# Aether CAD 🗺️
 
-An interactive CAD tool that allows users to create 3D structures on top of map imagery. Built with Three.js for 3D rendering, utilizing Mapbox Static Images API for the base map, and Flask for backend services.
+An interactive Computer-Aided Design (CAD) tool that empowers users to create 3D structures overlaid on map imagery. Built with Three.js for powerful 3D rendering capabilities, integrated with Mapbox Static Images API for high-quality base maps, and powered by a Flask backend.
 
-## Features
+![Aether CAD Demo](https://giphy.com/gifs/QAgIIVP5CeFSqITjSy)
 
-- Load map imagery from Mapbox Static Images API
-- Draw 2D shapes on the map plane
-- Extrude shapes into 3D structures
-- Adjust pitch/roof angles of polygons
-- Interactive camera controls
+## ✨ Features
 
-## Tech Stack
+- **Map Integration**: Seamless loading of high-resolution map imagery from Mapbox Static Images API
+- **2D Drawing Tools**: Intuitive interface for creating precise 2D shapes on the map plane
+- **3D Modeling**: Easy extrusion of 2D shapes into detailed 3D structures
+- **Advanced Controls**:
+  - Fine-tune pitch and roof angles of polygons
+  - Comprehensive camera controls for optimal viewing
+  - Real-time preview of modifications
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- Vite
-- Vanilla JavaScript
-- Three.js for 3D rendering
-- CSS for styling
+- **Build Tool**: Vite for lightning-fast development
+- **Core**: Vanilla JavaScript for optimal performance
+- **3D Engine**: Three.js for robust 3D rendering
+- **Styling**: Modern CSS for responsive design
 
 ### Backend
 
-- Flask
-- Python 3.10+
-- Mapbox Static Images API integration
+- **Server**: Flask for lightweight, efficient API handling
+- **Runtime**: Python 3.10+
+- **Map Services**: Mapbox Static Images API integration
 
-## Prerequisites
+## 📋 Prerequisites
 
-- Docker and Docker Compose
-- Mapbox API key
-- Node.js v18+ (for local development)
-- Python 3.10+ (for local development)
+- Docker and Docker Compose (for containerized deployment)
+- Mapbox API key ([Get one here](https://www.mapbox.com/))
+- For local development:
+  - Node.js v18+
+  - Python 3.10+
 
-## Quick Start with Docker
+## 🚀 Quick Start with Docker
 
-1. Clone the repository:
+1. **Clone the repository**
 
 ```bash
 git clone https://github.com/ayoubbif/aether-cad
 cd aether-cad
 ```
 
-2. Create a `.env` file in the root directory:
+2. **Configure environment**
+   Create a `.env` file in the server directory:
 
-```
+```bash
 MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
 ```
 
-3. Build and run the containers:
+3. **Launch the application**
 
 ```bash
 docker-compose up --build
 ```
 
-4. Access the application at `http://localhost:3000:80`
+4. **Access the application**
+   Open your browser and navigate to `http://localhost:3000`
 
-## Local Development Setup
+## 💻 Local Development Setup
 
-### Frontend Setup
-
-1. Navigate to the frontend directory:
+### Frontend Development
 
 ```bash
+# Navigate to frontend
 cd client
-```
 
-2. Install dependencies:
-
-```bash
+# Install dependencies
 npm install
-```
 
-3. Start the development server:
-
-```bash
+# Start development server
 npm run dev
 ```
 
-### Backend Setup
-
-1. Navigate to the backend directory:
+### Backend Development
 
 ```bash
+# Navigate to backend
 cd server
-```
 
-2. Create and activate a virtual environment:
-
-```bash
+# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-3. Install dependencies:
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-4. Start the Flask server:
-
-```bash
+# Start Flask server
 python3 main.py
 ```
 
-## API Endpoints
+## 🔌 API Reference
 
 ### GET /satellite_image
 
-Fetches a static map image from Mapbox API
+Retrieves static map imagery from Mapbox API
 
-- Query Parameters:
-  - `lat`: Latitude (required)
-  - `lng`: Longitude (required)
-  - `zoom`: Zoom level (required)
-  - `width`: Image width (optional, default: 600)
-  - `height`: Image height (optional, default: 400)
+#### Query Parameters
 
-## Environment Variables
+| Parameter | Type  | Required | Default | Description       |
+| --------- | ----- | -------- | ------- | ----------------- |
+| lat       | float | Yes      | -       | Latitude          |
+| lng       | float | Yes      | -       | Longitude         |
+| zoom      | int   | Yes      | -       | Zoom level        |
+| width     | int   | No       | 600     | Image width (px)  |
+| height    | int   | No       | 400     | Image height (px) |
 
-- `MAPBOX_ACCESS_TOKEN`: Your Mapbox API key
+## 🔑 Environment Variables
+
+| Variable            | Description         | Required |
+| ------------------- | ------------------- | -------- |
+| MAPBOX_ACCESS_TOKEN | Your Mapbox API key | Yes      |
+
+## 🎯 Future Enhancements
+
+### Version 2.0 Roadmap
+
+#### Enhanced Editing Capabilities
+
+- [ ] Implement Undo/Redo functionality
+- [ ] Add command history stack
+- [ ] Support for multiple selection and group operations
+
+#### Extended Shape Library
+
+- [ ] Add primitive shapes:
+  - [ ] Spheres
+  - [ ] Boxes
+  - [ ] Cylinders
+- [ ] Custom shape creation tools
+- [ ] Shape library management
+
+#### Improved UI/UX
+
+- [ ] Modern, responsive interface redesign
+- [ ] Customizable workspace layouts
+- [ ] Enhanced keyboard shortcuts
+- [ ] Context-sensitive help
+- [ ] Dark/Light theme support
+
+#### Advanced Object Controls
+
+- [ ] Transform Inspector panel
+  - [ ] Precise position control
+  - [ ] Rotation on all axes
+  - [ ] Uniform/non-uniform scaling
+- [ ] Snap-to-grid functionality
+- [ ] Object alignment tools
