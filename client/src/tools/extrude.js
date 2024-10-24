@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { BaseTool } from './base';
 import { MaterialManager } from './managers/material-manager';
 import { ExtrudeUI } from './ui/extrude-ui';
+import { GeometryFactory } from './factories/geometry-factory';
+
 export class ExtrudeTool extends BaseTool {
   constructor(scene, camera, renderer) {
     super(scene, camera, renderer);
@@ -10,13 +12,11 @@ export class ExtrudeTool extends BaseTool {
     this.initializeUI();
   }
 
-  // Initialize properties
   initializeProperties() {
     this.selectedObject = null;
     this.materials = new MaterialManager();
   }
 
-  // Event listener setup
   setupEventListeners() {
     super.setupEventListeners({
       mousedown: this.onMouseDown.bind(this),
@@ -24,7 +24,6 @@ export class ExtrudeTool extends BaseTool {
     });
   }
 
-  // Initialize UI
   initializeUI() {
     this.ui = new ExtrudeUI(this.renderer.domElement.parentElement);
     this.ui.setHeightChangeHandler(this.handleHeightInputChange.bind(this));
@@ -44,7 +43,6 @@ export class ExtrudeTool extends BaseTool {
     return !isNaN(height) && height >= 0.01;
   }
 
-  // Tool Interactions
   getCursorStyle() {
     return 'cell';
   }
@@ -52,7 +50,7 @@ export class ExtrudeTool extends BaseTool {
   getIntersectionPoint(event) {
     const intersects = super.getIntersectionPoint(event);
     const intersection = intersects.find(intersect => this.isValidIntersection(intersect));
-    return intersection?.object; // Return the actual mesh object
+    return intersection?.object;
   }
 
   isValidIntersection(intersect) {
@@ -65,7 +63,6 @@ export class ExtrudeTool extends BaseTool {
     );
   }
 
-  // Event Handlers
   onMouseDown(event) {
     if (!this.isActive) return;
 
@@ -100,15 +97,13 @@ export class ExtrudeTool extends BaseTool {
     }
   }
 
-  // Extrusion Logic
   extrudePolygon(polygon, height) {
     if (!this.validatePolygon(polygon)) return;
 
     const points = this.getPolygonPoints(polygon);
     if (points.length < 3) return;
 
-    const shape = this.createShape(points);
-    const geometry = this.createExtrudedGeometry(shape, height);
+    const geometry = GeometryFactory.createExtrudedGeometry(points, height);
 
     this.updatePolygonGeometry(polygon, geometry, height);
     this.updatePolygonMaterial(polygon);
@@ -126,23 +121,6 @@ export class ExtrudeTool extends BaseTool {
       x: marker.position.x,
       y: -marker.position.z // Invert Z coordinate to fix mirroring
     }));
-  }
-
-  createShape(points) {
-    const shape = new THREE.Shape();
-    shape.moveTo(points[0].x, points[0].y);
-    points.slice(1).forEach(point => shape.lineTo(point.x, point.y));
-    shape.closePath();
-    return shape;
-  }
-
-  createExtrudedGeometry(shape, height) {
-    const extrudeSettings = {
-      depth: height,
-      bevelEnabled: false,
-      steps: 1
-    };
-    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
   }
 
   updatePolygonGeometry(polygon, geometry, height) {
@@ -176,14 +154,13 @@ export class ExtrudeTool extends BaseTool {
   }
 
   createNewOutline(polygon, geometry) {
-    const edgesGeometry = new THREE.EdgesGeometry(geometry);
+    const edgesGeometry = GeometryFactory.createEdgesGeometry(geometry);
     const outlineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
     const outline = new THREE.LineSegments(edgesGeometry, outlineMaterial);
     polygon.add(outline);
     polygon.userData.outline = outline;
   }
 
-  // Material Management
   disposeMaterials(polygon) {
     if (Array.isArray(polygon.material)) {
       polygon.material.forEach(mat => mat?.dispose());
@@ -192,7 +169,6 @@ export class ExtrudeTool extends BaseTool {
     }
   }
 
-  // Tool State Management
   clearSelection() {
     if (this.selectedObject) {
       this.selectedObject = null;
@@ -211,7 +187,6 @@ export class ExtrudeTool extends BaseTool {
     this.clearSelection();
   }
 
-  // Cleanup
   dispose() {
     super.dispose();
     this.clearSelection();
