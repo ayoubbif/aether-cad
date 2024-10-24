@@ -1,178 +1,202 @@
 import * as THREE from 'three';
 import { BaseTool } from './base';
 import { MaterialManager } from './managers/material-manager';
-
+import { ExtrudeUI } from './ui/extrude-ui';
 export class ExtrudeTool extends BaseTool {
   constructor(scene, camera, renderer) {
     super(scene, camera, renderer);
+    this.initializeProperties();
+    this.setupEventListeners();
+    this.initializeUI();
+  }
 
+  // Initialize properties
+  initializeProperties() {
     this.selectedObject = null;
     this.materials = new MaterialManager();
+  }
 
-    this.setupEventListeners({
+  // Event listener setup
+  setupEventListeners() {
+    super.setupEventListeners({
       mousedown: this.onMouseDown.bind(this),
       keydown: this.onKeyDown.bind(this)
     });
-
-    // Create height input element
-    this.createHeightInput();
   }
 
-  createHeightInput() {
-    // Create container for the height input
-    this.heightInputContainer = document.createElement('div');
-    this.heightInputContainer.style.position = 'absolute';
-    this.heightInputContainer.style.left = '20px';
-    this.heightInputContainer.style.top = '20px';
-    this.heightInputContainer.style.background = 'rgba(0, 0, 0, 0.7)';
-    this.heightInputContainer.style.padding = '10px';
-    this.heightInputContainer.style.borderRadius = '5px';
-    this.heightInputContainer.style.display = 'none';
-
-    // Create label
-    const label = document.createElement('label');
-    label.textContent = 'Height: ';
-    label.style.color = 'white';
-    label.style.marginRight = '5px';
-
-    // Create input
-    this.heightInput = document.createElement('input');
-    this.heightInput.type = 'number';
-    this.heightInput.step = '0.1';
-    this.heightInput.min = '0.1';
-    this.heightInput.style.width = '60px';
-
-    // Add event listener for input changes
-    this.heightInput.addEventListener('change', (e) => {
-      const newHeight = parseFloat(e.target.value);
-      if (!isNaN(newHeight) && newHeight >= 0.1) {
-        this.extrudePolygon(this.selectedObject, newHeight);
-        this.emit('extrudeComplete', {
-          object: this.selectedObject,
-          height: newHeight
-        });
-      }
-    });
-
-    // Append elements
-    this.heightInputContainer.appendChild(label);
-    this.heightInputContainer.appendChild(this.heightInput);
-
-    // Add to renderer's container
-    this.renderer.domElement.parentElement.appendChild(this.heightInputContainer);
+  // Initialize UI
+  initializeUI() {
+    this.ui = new ExtrudeUI(this.renderer.domElement.parentElement);
+    this.ui.setHeightChangeHandler(this.handleHeightInputChange.bind(this));
   }
 
-  showHeightInput(height) {
-    this.heightInput.value = height.toFixed(1);
-    this.heightInputContainer.style.display = 'block';
+  handleHeightInputChange(newHeight) {
+    if (this.isValidHeight(newHeight)) {
+      this.extrudePolygon(this.selectedObject, newHeight);
+      this.emit('extrudeComplete', {
+        object: this.selectedObject,
+        height: newHeight
+      });
+    }
   }
 
-  hideHeightInput() {
-    this.heightInputContainer.style.display = 'none';
+  isValidHeight(height) {
+    return !isNaN(height) && height >= 0.01;
   }
 
+  // Tool Interactions
   getCursorStyle() {
-    return 'pointer';
+    return 'cell';
   }
 
   getIntersectionPoint(event) {
     const intersects = super.getIntersectionPoint(event);
-    return intersects.find((intersect) =>
-      intersect.object instanceof THREE.Mesh &&
-      !intersect.object.userData.isVertex &&
-      (intersect.object.geometry instanceof THREE.ShapeGeometry ||
-       intersect.object.geometry instanceof THREE.ExtrudeGeometry)
-    )?.object;
+    const intersection = intersects.find(intersect => this.isValidIntersection(intersect));
+    return intersection?.object; // Return the actual mesh object
   }
 
+  isValidIntersection(intersect) {
+    const object = intersect.object;
+    return (
+      object instanceof THREE.Mesh &&
+      !object.userData?.isVertex &&
+      (object.geometry instanceof THREE.ShapeGeometry ||
+        object.geometry instanceof THREE.ExtrudeGeometry)
+    );
+  }
+
+  // Event Handlers
   onMouseDown(event) {
     if (!this.isActive) return;
 
     const intersectedObject = this.getIntersectionPoint(event);
     if (intersectedObject) {
-      this.selectedObject = intersectedObject;
-
-      // Get the current height if already extruded
-      const currentHeight = this.selectedObject.userData.extrudeHeight || 0;
-
-      // Store marker points if not already stored
-      if (!this.selectedObject.userData.markerPoints) {
-        console.error('No marker points found for polygon');
-        return;
-      }
-
-      this.showHeightInput(currentHeight);
-      this.emit('objectSelected', { object: this.selectedObject });
+      this.handleObjectSelection(intersectedObject);
     }
+  }
+
+  handleObjectSelection(object) {
+    if (!object?.userData) {
+      console.error('Invalid object selected');
+      return;
+    }
+
+    this.selectedObject = object;
+    const currentHeight = object.userData.extrudeHeight || 0;
+
+    if (!object.userData.markerPoints) {
+      console.error('No marker points found for polygon');
+      return;
+    }
+
+    this.ui.show(currentHeight);
+    this.emit('objectSelected', { object });
   }
 
   onKeyDown(event) {
     if (!this.isActive) return;
-
     if (event.key === 'Escape') {
       this.clearSelection();
     }
   }
 
+  // Extrusion Logic
   extrudePolygon(polygon, height) {
-    if (!polygon || !polygon.userData.markerPoints) return;
+    if (!this.validatePolygon(polygon)) return;
 
-    // Get points from marker points and correct their orientation
-    const points = polygon.userData.markerPoints.map(marker => ({
-      x: marker.position.x,
-      y: -marker.position.z  // Invert Z coordinate to fix mirroring
-    }));
-
+    const points = this.getPolygonPoints(polygon);
     if (points.length < 3) return;
 
-    // Create shape from points
+    const shape = this.createShape(points);
+    const geometry = this.createExtrudedGeometry(shape, height);
+
+    this.updatePolygonGeometry(polygon, geometry, height);
+    this.updatePolygonMaterial(polygon);
+    this.updatePolygonOutline(polygon, geometry);
+
+    this.emit('heightChanged', { height });
+  }
+
+  validatePolygon(polygon) {
+    return polygon && polygon.userData?.markerPoints;
+  }
+
+  getPolygonPoints(polygon) {
+    return polygon.userData.markerPoints.map(marker => ({
+      x: marker.position.x,
+      y: -marker.position.z // Invert Z coordinate to fix mirroring
+    }));
+  }
+
+  createShape(points) {
     const shape = new THREE.Shape();
     shape.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-      shape.lineTo(points[i].x, points[i].y);
-    }
+    points.slice(1).forEach(point => shape.lineTo(point.x, point.y));
     shape.closePath();
+    return shape;
+  }
 
-    // Create extrusion settings with correct depth direction
+  createExtrudedGeometry(shape, height) {
     const extrudeSettings = {
       depth: height,
       bevelEnabled: false,
       steps: 1
     };
-
-    // Create new extruded geometry
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-
-    // Update the mesh
-    polygon.geometry.dispose();
-    polygon.geometry = geometry;
-
-    // Store the height in userData
-    polygon.userData.extrudeHeight = height;
-
-    // Apply correct orientation
-    polygon.rotation.x = -Math.PI / 2;  // Rotate to correct plane
-
-    // Update material
-    if (Array.isArray(polygon.material)) {
-      polygon.material.forEach(mat => mat.dispose());
-    } else {
-      polygon.material.dispose();
-    }
-
-    // Create materials array for different faces
-    polygon.material = [
-      this.materials.get('extruded'), // Top and bottom faces
-      this.materials.get('extruded')  // Side faces
-    ];
-
-    this.emit('heightChanged', { height });
+    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
   }
 
+  updatePolygonGeometry(polygon, geometry, height) {
+    if (polygon.geometry) {
+      polygon.geometry.dispose();
+    }
+    polygon.geometry = geometry;
+    polygon.userData.extrudeHeight = height;
+    polygon.rotation.x = -Math.PI / 2;
+  }
+
+  updatePolygonMaterial(polygon) {
+    this.disposeMaterials(polygon);
+    polygon.material = [
+      this.materials.get('extruded'),
+      this.materials.get('extruded')
+    ];
+  }
+
+  updatePolygonOutline(polygon, geometry) {
+    this.cleanupExistingOutline(polygon);
+    this.createNewOutline(polygon, geometry);
+  }
+
+  cleanupExistingOutline(polygon) {
+    if (polygon.userData?.outline) {
+      polygon.remove(polygon.userData.outline);
+      polygon.userData.outline.geometry.dispose();
+      polygon.userData.outline.material.dispose();
+    }
+  }
+
+  createNewOutline(polygon, geometry) {
+    const edgesGeometry = new THREE.EdgesGeometry(geometry);
+    const outlineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const outline = new THREE.LineSegments(edgesGeometry, outlineMaterial);
+    polygon.add(outline);
+    polygon.userData.outline = outline;
+  }
+
+  // Material Management
+  disposeMaterials(polygon) {
+    if (Array.isArray(polygon.material)) {
+      polygon.material.forEach(mat => mat?.dispose());
+    } else if (polygon.material?.dispose) {
+      polygon.material.dispose();
+    }
+  }
+
+  // Tool State Management
   clearSelection() {
     if (this.selectedObject) {
       this.selectedObject = null;
-      this.hideHeightInput();
+      this.ui.hide();
       this.emit('selectionCleared');
     }
   }
@@ -187,21 +211,14 @@ export class ExtrudeTool extends BaseTool {
     this.clearSelection();
   }
 
+  // Cleanup
   dispose() {
     super.dispose();
     this.clearSelection();
     if (this.selectedObject) {
-      if (Array.isArray(this.selectedObject.material)) {
-        this.selectedObject.material.forEach(mat => mat.dispose());
-      } else {
-        this.selectedObject.material.dispose();
-      }
+      this.disposeMaterials(this.selectedObject);
     }
     this.materials.dispose();
-
-    // Remove height input
-    if (this.heightInputContainer && this.heightInputContainer.parentElement) {
-      this.heightInputContainer.parentElement.removeChild(this.heightInputContainer);
-    }
+    this.ui.dispose();
   }
 }
