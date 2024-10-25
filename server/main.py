@@ -12,13 +12,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # Enable CORS with specific origins
-CORS(app, resources={
-    r"/satellite_image": {
-        "origins": ["http://localhost:3000", "http://localhost:80"],
-        "methods": ["GET"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app)
 
 # Get the access token from the environment
 MAPBOX_ACCESS_TOKEN = os.getenv('MAPBOX_ACCESS_TOKEN')
