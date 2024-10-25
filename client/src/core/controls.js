@@ -26,15 +26,6 @@ export class Controls {
     this.controls.update();
   }
 
-  // Add methods for controls manipulation
-  enable() {
-    this.controls.enabled = true;
-  }
-
-  disable() {
-    this.controls.enabled = false;
-  }
-
   getControls() {
     return this.controls;
   }
