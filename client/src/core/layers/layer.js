@@ -9,8 +9,4 @@ export class Layer {
     this.visible = isVisible;
     this.mesh.visible = isVisible;
   }
-
-  getMesh() {
-    return this.mesh;
-  }
 }
