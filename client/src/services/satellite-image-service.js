@@ -3,7 +3,12 @@ export class SatelliteImageService {
     const url = `http://localhost:5000/satellite_image?lat=${latitude}&lon=${longitude}&zoom=${zoom}`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
