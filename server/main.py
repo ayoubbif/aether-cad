@@ -1,77 +1,90 @@
-import os
-import requests
-from dotenv import load_dotenv
+# app.py
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from io import BytesIO
+from core.config import Config
+from core.logger import setup_logger
+from core.exceptions import ValidationError, MapboxAPIError
+from services.mapbox_service import MapboxService
+from api.validators import SatelliteImageValidator
 
-# Load environment variables from .env file
-load_dotenv()
+# Initialize configuration
+config = Config()
 
-# Initialize Flask app and enable CORS
+# Initialize Flask app
 app = Flask(__name__)
 
-# Enable CORS with specific origins
-CORS(app)
+# Configure CORS properly
+CORS(app, resources={
+    r"/api/v1/*": {
+        "origins": config.ALLOWED_ORIGINS,
+        "methods": ["GET", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
-# Get the access token from the environment
-MAPBOX_ACCESS_TOKEN = os.getenv('MAPBOX_ACCESS_TOKEN')
+# Initialize services and logger
+logger = setup_logger(__name__)
+mapbox_service = MapboxService(config.MAPBOX_ACCESS_TOKEN)
+validator = SatelliteImageValidator()
 
-# Check if the access token is present
-if not MAPBOX_ACCESS_TOKEN:
-    raise EnvironmentError("No Mapbox access token found in environment.")
+@app.errorhandler(ValidationError)
+def handle_validation_error(error):
+    """Handle validation errors."""
+    return jsonify({"error": str(error)}), 400
 
-def validate_params(*params):
-    """Utility function to check if all required parameters are provided."""
-    if not all(params):
-        return False
-    return True
+@app.errorhandler(MapboxAPIError)
+def handle_mapbox_error(error):
+    """Handle Mapbox API errors."""
+    return jsonify({"error": str(error)}), 502
 
-def generate_mapbox_url(lat, lon, zoom=18, width=600, height=400):
-    """
-    Generates a URL for fetching static satellite images from the Mapbox API.
-
-    :param lat: Latitude of the location
-    :param lon: Longitude of the location
-    :param zoom: Zoom level for the image (default 18)
-    :param width: Image width (default 600)
-    :param height: Image height (default 400)
-    :return: Formatted URL with access token
-    """
-    base_url = "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static"
-    center = f"{lon},{lat}"
-    size = f"{width}x{height}"
-
-    # Construct the final URL with access token
-    return f"{base_url}/{center},{zoom}/{size}@2x?access_token={MAPBOX_ACCESS_TOKEN}"
-
-@app.route('/satellite_image', methods=['GET'])
+@app.route('/api/v1/satellite-image', methods=['GET', 'OPTIONS'])
 def get_satellite_image():
-    """API endpoint to retrieve a satellite image based on coordinates."""
-    latitude = request.args.get('lat')
-    longitude = request.args.get('lon')
-    zoom = request.args.get('zoom', default=18, type=int)
-    width = request.args.get('width', default=600, type=int)
-    height = request.args.get('height', default=400, type=int)
-
-    # Validate that latitude and longitude are provided
-    if not validate_params(latitude, longitude):
-        return jsonify({"error": "Missing required parameters: 'lat' and 'lon'"}), 400
-
-    # Generate the Mapbox URL
-    mapbox_url = generate_mapbox_url(latitude, longitude, zoom, width, height)
+    """Endpoint to retrieve satellite images."""
+    # Handle OPTIONS request explicitly
+    if request.method == 'OPTIONS':
+        return '', 204
 
     try:
-        # Make a GET request to Mapbox API
-        response = requests.get(mapbox_url)
-        response.raise_for_status()  # Raise an exception for 4XX/5XX errors
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching image from Mapbox: {str(e)}")
-        return jsonify({"error": f"Error fetching image: {str(e)}"}), 500
+        # Extract and validate coordinates
+        lat, lon = validator.validate_coordinates(
+            request.args.get('lat'),
+            request.args.get('lon')
+        )
 
-    # Return the image as a PNG file
-    return send_file(BytesIO(response.content), mimetype='image/png')
+        # Extract and validate image parameters
+        zoom, width, height = validator.validate_image_params(
+            zoom=request.args.get('zoom', type=int, default=18),
+            width=request.args.get('width', type=int, default=600),
+            height=request.args.get('height', type=int, default=400)
+        )
+
+        # Fetch image from Mapbox
+        image_data = mapbox_service.fetch_satellite_image(
+            latitude=lat,
+            longitude=lon,
+            zoom=zoom,
+            width=width,
+            height=height
+        )
+
+        response = send_file(
+            BytesIO(image_data),
+            mimetype='image/png',
+            as_attachment=False
+        )
+
+        # Add CORS headers to the response
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    # Start the Flask app
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(
+        host=config.HOST,
+        port=config.PORT,
+        debug=config.DEBUG
+    )
