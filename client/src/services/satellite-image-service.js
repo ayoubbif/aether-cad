@@ -1,16 +1,20 @@
+// satellite_image_service.js
 export class SatelliteImageService {
   static async fetchImage(latitude, longitude, zoom) {
-    const url = `http://localhost:5000/satellite_image?lat=${latitude}&lon=${longitude}&zoom=${zoom}`;
+    const url = `http://localhost:5000/api/v1/satellite-image?lat=${latitude}&lon=${longitude}&zoom=${zoom}`;
 
     try {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Accept': 'image/png',
         },
+        credentials: 'omit'
       });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       const blob = await response.blob();
