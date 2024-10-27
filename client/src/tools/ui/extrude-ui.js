@@ -12,106 +12,77 @@ export class ExtrudeUI {
         position: absolute;
         left: 20px;
         top: 20px;
-        background: rgba(15, 23, 42, 0.95);
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        min-width: 280px;
+        background: #1f1f1f;
+        padding: 16px;
+        width: 280px;
+        font-family: system-ui, -apple-system, sans-serif;
+        border: 1px solid #333;
       }
 
       .extrude-ui-wrapper {
-        margin-bottom: 16px;
+        margin-bottom: 12px;
       }
 
       .extrude-ui-header {
-        color: #f8fafc;
-        font-size: 16px;
+        color: #fff;
+        font-size: 14px;
         font-weight: 600;
         margin-bottom: 16px;
         padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid #333;
       }
 
       .extrude-ui-label {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        color: #e2e8f0;
+        color: #fff;
         margin-bottom: 8px;
         font-size: 14px;
-        font-weight: 500;
       }
 
       .extrude-ui-value {
-        color: #94a3b8;
+        color: #999;
         font-size: 13px;
-        font-weight: 400;
       }
 
       .extrude-ui-input {
         width: 100%;
-        padding: 10px 14px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        background: rgba(30, 41, 59, 0.8);
+        padding: 8px;
+        border: 1px solid #333;
+        background: #2d2d2d;
         color: white;
         font-size: 14px;
-        transition: all 0.2s ease;
-        outline: none;
-      }
-
-      .extrude-ui-input:hover {
-        border-color: rgba(255, 255, 255, 0.3);
       }
 
       .extrude-ui-input:focus {
-        border-color: #60a5fa;
-        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+        border-color: #666;
+        outline: none;
       }
 
       .extrude-ui-slider {
         -webkit-appearance: none;
         width: 100%;
-        height: 6px;
-        border-radius: 3px;
-        background: rgba(255, 255, 255, 0.1);
-        outline: none;
+        height: 4px;
+        background: #333;
         margin: 10px 0;
       }
 
       .extrude-ui-slider::-webkit-slider-thumb {
         -webkit-appearance: none;
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #60a5fa;
+        width: 16px;
+        height: 16px;
+        background: #666;
         cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-      }
-
-      .extrude-ui-slider::-webkit-slider-thumb:hover {
-        background: #3b82f6;
-        transform: scale(1.1);
+        border: none;
       }
 
       .extrude-ui-slider::-moz-range-thumb {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #60a5fa;
+        width: 16px;
+        height: 16px;
+        background: #666;
         cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-      }
-
-      .extrude-ui-slider::-moz-range-thumb:hover {
-        background: #3b82f6;
-        transform: scale(1.1);
+        border: none;
       }
 
       .extrude-ui-input::-webkit-inner-spin-button,
@@ -152,14 +123,7 @@ export class ExtrudeUI {
     return header;
   }
 
-  createNumberInput(
-    labelText,
-    defaultValue,
-    step,
-    unit,
-    min = '0.01',
-    max = null
-  ) {
+  createWrapper(labelText, defaultValue, unit) {
     const wrapper = document.createElement('div');
     wrapper.className = 'extrude-ui-wrapper';
 
@@ -175,6 +139,13 @@ export class ExtrudeUI {
 
     labelContainer.appendChild(label);
     labelContainer.appendChild(valueDisplay);
+    wrapper.appendChild(labelContainer);
+
+    return { wrapper, valueDisplay };
+  }
+
+  createNumberInput(labelText, defaultValue, step, unit, min = '0.01', max = null) {
+    const { wrapper, valueDisplay } = this.createWrapper(labelText, defaultValue, unit);
 
     const input = document.createElement('input');
     input.className = 'extrude-ui-input';
@@ -193,27 +164,12 @@ export class ExtrudeUI {
       valueDisplay.textContent = `${input.value}${unit}`;
     });
 
-    wrapper.appendChild(labelContainer);
     wrapper.appendChild(input);
     return { wrapper, input, valueDisplay };
   }
 
   createSliderInput(labelText, defaultValue, step, min, max, unit) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'extrude-ui-wrapper';
-
-    const labelContainer = document.createElement('div');
-    labelContainer.className = 'extrude-ui-label';
-
-    const label = document.createElement('span');
-    label.textContent = labelText;
-
-    const valueDisplay = document.createElement('span');
-    valueDisplay.className = 'extrude-ui-value';
-    valueDisplay.textContent = `${defaultValue}${unit}`;
-
-    labelContainer.appendChild(label);
-    labelContainer.appendChild(valueDisplay);
+    const { wrapper, valueDisplay } = this.createWrapper(labelText, defaultValue, unit);
 
     const input = document.createElement('input');
     input.className = 'extrude-ui-slider';
@@ -229,7 +185,6 @@ export class ExtrudeUI {
       valueDisplay.textContent = `${input.value}${unit}`;
     });
 
-    wrapper.appendChild(labelContainer);
     wrapper.appendChild(input);
     return { wrapper, input, valueDisplay };
   }
