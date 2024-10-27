@@ -1,4 +1,3 @@
-// satellite_image_service.js
 export class SatelliteImageService {
   static async fetchImage(latitude, longitude, zoom) {
     const url = `http://localhost:5000/api/v1/satellite-image?lat=${latitude}&lon=${longitude}&zoom=${zoom}`;
