@@ -39,13 +39,13 @@ export class SelectTool extends BaseTool {
   }
 
   findSelectableObject(intersects) {
-    return intersects.find(intersect => {
+    return intersects.find((intersect) => {
       const object = intersect.object;
       return (
         object instanceof THREE.Mesh &&
         !object.userData.isVertex &&
         (object.geometry instanceof THREE.ShapeGeometry ||
-         object.geometry instanceof THREE.ExtrudeGeometry)
+          object.geometry instanceof THREE.ExtrudeGeometry)
       );
     });
   }
@@ -86,7 +86,7 @@ export class SelectTool extends BaseTool {
 
   cloneMaterial(material) {
     if (Array.isArray(material)) {
-      return material.map(m => m.clone());
+      return material.map((m) => m.clone());
     }
     if (material && typeof material.clone === 'function') {
       return material.clone();
@@ -112,10 +112,12 @@ export class SelectTool extends BaseTool {
     const numFaces = geometry.attributes.position.count / 6;
 
     // Create materials array with original material as base
-    const baseMaterial = Array.isArray(originalMaterial) ? originalMaterial[0] : originalMaterial;
-    const materials = Array(numFaces).fill().map(() =>
-      this.cloneMaterial(baseMaterial)
-    );
+    const baseMaterial = Array.isArray(originalMaterial)
+      ? originalMaterial[0]
+      : originalMaterial;
+    const materials = Array(numFaces)
+      .fill()
+      .map(() => this.cloneMaterial(baseMaterial));
 
     // Set the selected face material
     const highlightMaterial = this.materials.get('selected');
@@ -185,7 +187,7 @@ export class SelectTool extends BaseTool {
   removeFromSceneWithPoints(object) {
     // Remove associated marker points
     if (object.userData.markerPoints) {
-      object.userData.markerPoints.forEach(point => {
+      object.userData.markerPoints.forEach((point) => {
         this.scene.remove(point);
         point.geometry.dispose();
       });
@@ -196,8 +198,11 @@ export class SelectTool extends BaseTool {
 
     // Dispose of materials
     if (Array.isArray(object.material)) {
-      object.material.forEach(mat => mat?.dispose());
-    } else if (object.material && typeof object.material.dispose === 'function') {
+      object.material.forEach((mat) => mat?.dispose());
+    } else if (
+      object.material &&
+      typeof object.material.dispose === 'function'
+    ) {
       object.material.dispose();
     }
 

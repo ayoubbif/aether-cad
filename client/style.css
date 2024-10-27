@@ -26,7 +26,6 @@
   --border-radius: 8px;
 }
 
-
 body {
   overflow: hidden;
   background-color: var(--bg-dark);

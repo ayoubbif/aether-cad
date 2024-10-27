@@ -25,7 +25,9 @@ export class GeometryFactory {
   }
 
   static createExtrudedGeometry(points, height, pitch = 0) {
-    const shape = new THREE.Shape(points.map(p => new THREE.Vector2(p.x, p.y)));
+    const shape = new THREE.Shape(
+      points.map((p) => new THREE.Vector2(p.x, p.y))
+    );
     const extrudeSettings = {
       steps: 1,
       depth: height,

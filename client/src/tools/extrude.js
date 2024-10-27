@@ -52,7 +52,6 @@ export class ExtrudeTool extends BaseTool {
     }
   }
 
-
   isValidHeight(height) {
     return !isNaN(height) && height >= 0.01;
   }
@@ -67,7 +66,9 @@ export class ExtrudeTool extends BaseTool {
 
   getIntersectionPoint(event) {
     const intersects = super.getIntersectionPoint(event);
-    const intersection = intersects.find(intersect => this.isValidIntersection(intersect));
+    const intersection = intersects.find((intersect) =>
+      this.isValidIntersection(intersect)
+    );
     return intersection?.object;
   }
 
@@ -122,7 +123,11 @@ export class ExtrudeTool extends BaseTool {
     const points = this.getPolygonPoints(polygon);
     if (points.length < 3) return;
 
-    const geometry = GeometryFactory.createExtrudedGeometry(points, height, pitch);
+    const geometry = GeometryFactory.createExtrudedGeometry(
+      points,
+      height,
+      pitch
+    );
 
     this.updatePolygonGeometry(polygon, geometry, height, pitch);
     this.updatePolygonMaterial(polygon);
@@ -130,12 +135,13 @@ export class ExtrudeTool extends BaseTool {
 
     this.emit('heightChanged', { height, pitch });
   }
+
   validatePolygon(polygon) {
     return polygon && polygon.userData?.markerPoints;
   }
 
   getPolygonPoints(polygon) {
-    return polygon.userData.markerPoints.map(marker => ({
+    return polygon.userData.markerPoints.map((marker) => ({
       x: marker.position.x,
       y: -marker.position.z // Invert Z coordinate to fix mirroring
     }));
@@ -182,7 +188,7 @@ export class ExtrudeTool extends BaseTool {
 
   disposeMaterials(polygon) {
     if (Array.isArray(polygon.material)) {
-      polygon.material.forEach(mat => mat?.dispose());
+      polygon.material.forEach((mat) => mat?.dispose());
     } else if (polygon.material?.dispose) {
       polygon.material.dispose();
     }

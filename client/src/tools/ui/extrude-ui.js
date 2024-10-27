@@ -127,7 +127,14 @@ export class ExtrudeUI {
     this.container = this.createContainer();
     this.header = this.createHeader();
     this.heightInput = this.createNumberInput('Height:', '0.01', '0.01', 'm');
-    this.pitchInput = this.createSliderInput('Pitch:', '0', '1', '-45', '45', '°');
+    this.pitchInput = this.createSliderInput(
+      'Pitch:',
+      '0',
+      '1',
+      '-45',
+      '45',
+      '°'
+    );
     this.appendUIElements();
   }
 
@@ -145,7 +152,14 @@ export class ExtrudeUI {
     return header;
   }
 
-  createNumberInput(labelText, defaultValue, step, unit, min = '0.01', max = null) {
+  createNumberInput(
+    labelText,
+    defaultValue,
+    step,
+    unit,
+    min = '0.01',
+    max = null
+  ) {
     const wrapper = document.createElement('div');
     wrapper.className = 'extrude-ui-wrapper';
 
