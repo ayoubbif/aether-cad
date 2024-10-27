@@ -5,7 +5,14 @@ export class BaseTool {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
-    this.raycaster = new THREE.Raycaster();
+
+    // Initialize with default origin and direction
+    const origin = new THREE.Vector3(0, 0, 0);
+    const direction = new THREE.Vector3(0, 0, -1);
+    direction.normalize();
+
+    this.raycaster = new THREE.Raycaster(origin, direction);
+
     this.isActive = false;
     this.handlers = new Map();
   }
@@ -66,13 +73,5 @@ export class BaseTool {
       element.removeEventListener(eventName, handler);
     });
     this.handlers.clear();
-  }
-
-  removeFromScene(object) {
-    if (!object) return;
-
-    this.scene.remove(object);
-    if (object.geometry) object.geometry.dispose();
-    if (object.material) object.material.dispose();
   }
 }
