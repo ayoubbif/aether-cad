@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { BaseTool } from './base';
-import { MaterialManager } from './managers/material-manager';
 import { ExtrudeUI } from './ui/extrude-ui';
+import { MaterialManager } from './managers/material-manager';
 import { GeometryFactory } from './factories/geometry-factory';
 
 export class ExtrudeTool extends BaseTool {
@@ -116,63 +116,13 @@ export class ExtrudeTool extends BaseTool {
     this.emit('objectSelected', { object });
   }
 
-
   extrudePolygon(polygon, height, pitch = 0) {
     if (!this.validatePolygon(polygon)) return;
 
     const points = this.getPolygonPoints(polygon);
     if (points.length < 3) return;
 
-    // Convert pitch from degrees to radians
-    const pitchRad = (pitch * Math.PI) / 180;
-
-    // Create extruded geometry with base height
-    const extrudeSettings = {
-      steps: 1,
-      depth: height,
-      bevelEnabled: false
-    };
-
-    const shape = new THREE.Shape(points.map(p => new THREE.Vector2(p.x, p.y)));
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-
-    // Find the bounds of the geometry to determine the pivot point
-    const vertices = geometry.attributes.position.array;
-    let minX = Infinity;
-    let maxX = -Infinity;
-
-    // First pass: find the bounds
-    for (let i = 0; i < vertices.length; i += 3) {
-      const x = vertices[i];
-      minX = Math.min(minX, x);
-      maxX = Math.max(maxX, x);
-    }
-
-    // Determine which edge to pivot from based on pitch direction
-    const pivotX = pitch >= 0 ? minX : maxX;
-    const width = Math.abs(maxX - minX);
-
-    // Second pass: modify vertices for pitched roof
-    for (let i = 0; i < vertices.length; i += 3) {
-      const x = vertices[i];
-      const z = vertices[i + 2];
-
-      // Only modify vertices at the top face
-      if (Math.abs(z - height) < 0.001) {
-        // Calculate distance from pivot point
-        const distanceFromPivot = Math.abs(x - pivotX);
-
-        // Calculate new height based on pitch and distance from pivot
-        const heightOffset = Math.abs(Math.tan(pitchRad) * distanceFromPivot);
-
-        if ((pitch >= 0 && x >= pivotX) || (pitch < 0 && x <= pivotX)) {
-          vertices[i + 2] = height + heightOffset;
-        }
-      }
-    }
-
-    geometry.attributes.position.needsUpdate = true;
-    geometry.computeVertexNormals();
+    const geometry = GeometryFactory.createExtrudedGeometry(points, height, pitch);
 
     this.updatePolygonGeometry(polygon, geometry, height, pitch);
     this.updatePolygonMaterial(polygon);
@@ -180,7 +130,6 @@ export class ExtrudeTool extends BaseTool {
 
     this.emit('heightChanged', { height, pitch });
   }
-
   validatePolygon(polygon) {
     return polygon && polygon.userData?.markerPoints;
   }
