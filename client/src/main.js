@@ -11,7 +11,7 @@ import { SatelliteImageService } from './services/satellite-image-service';
 export class AetherEngine {
   constructor() {
     this.tools = new Map();
-    this.initializationPromise = this.initialize();
+    this.initialize = this.initialize();
   }
 
   async initialize() {
@@ -199,4 +199,4 @@ export class AetherEngine {
   }
 }
 
-const app = new AetherEngine();
+new AetherEngine();
