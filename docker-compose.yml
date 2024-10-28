@@ -3,9 +3,8 @@ services:
     build:
       context: ./client
     ports:
-      - "3000:80"
-    environment:
-      - BACKEND_URL=http://backend:5000
+      - "80:80"
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -14,8 +13,7 @@ services:
       context: ./server
     ports:
       - "5000:5000"
-    environment:
-      - FLASK_ENV=development
+    restart: unless-stopped
     networks:
       - app-network
 
