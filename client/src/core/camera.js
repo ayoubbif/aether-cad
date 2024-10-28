@@ -25,11 +25,6 @@ export class Camera {
     return this.camera;
   }
 
-  // Add methods for camera manipulation
-  setPosition(x, y, z) {
-    this.camera.position.set(x, y, z);
-  }
-
   lookAt(x, y, z) {
     this.camera.lookAt(x, y, z);
   }

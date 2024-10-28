@@ -1,24 +1,27 @@
-import * as THREE from 'three';
 import { Scene } from './core/scene';
 import { Renderer } from './core/renderer';
 import { Camera } from './core/camera';
 import { Controls } from './core/controls';
-import { DrawTool } from './tools/draw';
-import { SelectTool } from './tools/select';
-import { ExtrudeTool } from './tools/extrude';
-import { SatelliteImageService } from './services/satellite-image-service';
+import { ToolManager } from './core/managers/tool-manager';
+import { UIManager } from './core/managers/ui-manager';
 
 export class AetherEngine {
   constructor() {
-    this.tools = new Map();
     this.initialize = this.initialize();
   }
 
+  /**
+   * Orchestrates the engine initialization sequence:
+   * 1. Waits for DOM to be ready
+   * 2. Sets up core engine components
+   * 3. Binds window event handlers
+   * 4. Starts the render loop
+   */
   async initialize() {
     try {
       await this.waitForDOM();
-      this.initializeComponents();
-      this.setupEventHandlers();
+      this.initializeEngine();
+      this.setupWindowHandlers();
       this.startRenderLoop();
     } catch (error) {
       console.error('Initialization failed:', error);
@@ -26,15 +29,20 @@ export class AetherEngine {
     }
   }
 
+  /**
+   * Ensures DOM is fully loaded before proceeding with initialization.
+   * This prevents race conditions with DOM element access.
+   */
   async waitForDOM() {
     if (document.readyState === 'loading') {
-      await new Promise((resolve) => {
-        document.addEventListener('DOMContentLoaded', resolve);
-      });
+      await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
     }
     this.validateDOMElements();
   }
 
+  /**
+   * Validates presence of required DOM elements.
+   */
   validateDOMElements() {
     this.viewport = document.querySelector('.viewport');
     this.canvas = document.querySelector('#three-canvas');
@@ -44,7 +52,14 @@ export class AetherEngine {
     }
   }
 
-  initializeComponents() {
+  /**
+   * Initializes all core engine components and managers.
+   * Order is important here as some managers depend on others being initialized first.
+   *
+   * TODO: Consider implementing dependency injection for better testing and modularity
+   */
+  initializeEngine() {
+    // Core components
     this.sceneManager = new Scene();
     this.scene = this.sceneManager.getScene();
     this.renderer = new Renderer(this.canvas, this.viewport);
@@ -53,142 +68,39 @@ export class AetherEngine {
     this.controlsManager = new Controls(this.camera, this.canvas);
     this.controls = this.controlsManager.getControls();
 
-    // Initialize tools
-    this.initializeTools();
-    this.setupToolButtons();
-  }
-
-  initializeTools() {
-    const rendererInstance = this.renderer.getRenderer();
-
-    // Initialize tools and store them in the tools Map
-    this.tools.set(
-      'select',
-      new SelectTool(this.scene, this.camera, rendererInstance)
-    );
-    this.tools.set(
-      'draw',
-      new DrawTool(this.scene, this.camera, rendererInstance)
-    );
-    this.tools.set(
-      'extrude',
-      new ExtrudeTool(this.scene, this.camera, rendererInstance)
+    // Tool and UI management
+    this.toolManager = new ToolManager(
+      this.scene,
+      this.camera,
+      this.renderer.getRenderer()
     );
 
-    // Setup event listeners for selection tool
-    rendererInstance.domElement.addEventListener('objectSelected', (event) => {
-      console.log('Object selected:', event.detail.object);
-    });
-
-    rendererInstance.domElement.addEventListener('objectDeleted', () => {
-      console.log('Object deleted');
-    });
+    // UI should be initialized last as it may depend on all other systems
+    new UIManager(this.sceneManager, this.toolManager);
   }
 
-  setupToolButtons() {
-    const toolButtons = document.querySelectorAll('.tool-button');
-
-    toolButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        // Deactivate all tools first
-        this.deactivateAllTools();
-
-        // Remove active class from all buttons
-        toolButtons.forEach((btn) => btn.classList.remove('active'));
-
-        // Add active class to clicked button
-        button.classList.add('active');
-
-        // Activate the appropriate tool
-        if (button.querySelector('.fa-mouse-pointer')) {
-          this.tools.get('select').activate();
-        } else if (button.querySelector('.fa-pencil-alt')) {
-          this.tools.get('draw').activate();
-        } else if (button.querySelector('.fa-shapes')) {
-          this.tools.get('extrude').activate();
-        }
-      });
-    });
+  /**
+   * Sets up window event handlers for responsive behavior.
+   */
+  setupWindowHandlers() {
+    window.addEventListener('resize', () => this.handleResize());
   }
 
-  deactivateAllTools() {
-    for (const tool of this.tools.values()) {
-      tool.deactivate();
-    }
-  }
-
-  setupEventHandlers() {
-    this.setupResizeHandler();
-    this.setupLayerToggles();
-    this.setupImageFetching();
-  }
-
-  setupResizeHandler() {
-    window.addEventListener('resize', this.handleResize.bind(this));
-  }
-
-  setupLayerToggles() {
-    const layerToggles = {
-      layer1: 'image',
-      layer2: 'grid'
-    };
-
-    Object.entries(layerToggles).forEach(([elementId, layerType]) => {
-      const element = document.getElementById(elementId);
-      if (element) {
-        element.addEventListener('change', (event) => {
-          this.sceneManager.toggleLayerVisibility(
-            layerType,
-            event.target.checked
-          );
-        });
-      }
-    });
-  }
-
-  setupImageFetching() {
-    const fetchButton = document.getElementById('fetch-image');
-    if (fetchButton) {
-      fetchButton.addEventListener('click', () => this.fetchSatelliteImage());
-    }
-  }
-
-  async fetchSatelliteImage() {
-    try {
-      const params = this.getImageParameters();
-      const imageUrl = await SatelliteImageService.fetchImage(...params);
-      await this.loadSatelliteTexture(imageUrl);
-    } catch (error) {
-      console.error('Failed to fetch satellite image:', error);
-    }
-  }
-
-  getImageParameters() {
-    return ['latitude', 'longitude', 'zoom'].map((id) => {
-      const element = document.getElementById(id);
-      return element ? element.value : null;
-    });
-  }
-
-  loadSatelliteTexture(imageUrl) {
-    return new Promise((resolve, reject) => {
-      new THREE.TextureLoader().load(
-        imageUrl,
-        (texture) => {
-          this.sceneManager.setImage(texture);
-          resolve(texture);
-        },
-        undefined,
-        reject
-      );
-    });
-  }
-
+  /**
+   * Handles viewport resize events by updating renderer and camera
+   * Optional chaining used in case this is called before full initialization
+   */
   handleResize() {
     this.renderer?.resize();
     this.cameraManager?.resize();
   }
 
+  /**
+   * Initiates the main render loop
+   * Uses requestAnimationFrame for optimal performance and browser compatibility
+   *
+   * TODO: Consider implementing a fixed time step for physics/animations if needed
+   */
   startRenderLoop() {
     const animate = () => {
       requestAnimationFrame(animate);
@@ -199,4 +111,5 @@ export class AetherEngine {
   }
 }
 
+// Instantiate the engine
 new AetherEngine();
